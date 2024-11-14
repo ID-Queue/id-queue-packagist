@@ -1,0 +1,27 @@
+{
+    "name": "id-queue/id-queue-packagist",
+    "description": "List of all models used in id-queue",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "IdQueue\\IdQueuePackagist\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "id-queue"
+        }
+    ],
+    "require": {
+        "php": "^8.0",
+        "illuminate/support": "^9.0|^10.0"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "IdQueue\\IdQueuePackage\\ModelServiceProvider"
+            ]
+        }
+    }
+}
