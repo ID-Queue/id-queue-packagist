@@ -23,5 +23,7 @@
                 "IdQueue\\IdQueuePackage\\ModelServiceProvider"
             ]
         }
-    }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }
