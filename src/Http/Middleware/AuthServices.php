@@ -5,7 +5,6 @@ namespace IdQueue\IdQueuePackagist\Http\Middleware;
 use Closure;
 use IdQueue\IdQueuePackagist\Services\ConnectionService;
 use IdQueue\IdQueuePackagist\Utils\Helper;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class AuthServices
@@ -13,7 +12,7 @@ class AuthServices
     /**
      * Handle an incoming request.
      */
-    public function handle(Request $request, Closure $next): JsonResponse
+    public function handle(Request $request, Closure $next)
     {
         $bearer = $request->header('Authorization');
         if (empty($bearer)) {
