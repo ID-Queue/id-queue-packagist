@@ -20,7 +20,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "IdQueue\\IdQueuePackagist\\ModelServiceProvider"
+                "IdQueue\\IdQueuePackagist\\IdQueuePackagistServiceProvider"
             ]
         }
     },
