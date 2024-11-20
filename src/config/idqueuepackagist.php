@@ -2,5 +2,8 @@
 
 return [
     // Database connection name
-    'db_connection' => env('IDQUEUEPACKAGIST_DB_CONNECTION', 'db_connection'),
+    'company' => env('IDQUEUEPACKAGIST_DB_CONNECTION', 'db_connection'),
+    'admin' => env('IDQUEUEPACKAGIST_DB_ADMIN_CONNECTION', 'CC_2_DB'),
+    'admin-logs' => env('IDQUEUEPACKAGIST_DB_ADMIN_LOG_CONNECTION', 'IDQ_Logs'),
+    'company-demo' => env('IDQUEUEPACKAGIST_DB_DEMO_CONNECTION', 'IDQ_DB_Demo'),
 ];

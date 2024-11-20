@@ -21,7 +21,7 @@ class ConnectionService
      */
     public static function connect(): Connection
     {
-        return Database::connection('db_connection');
+        return Database::connection(config('idqueuepackagist.company'));
     }
 
     /**
@@ -49,31 +49,25 @@ class ConnectionService
 
     /**
      * Connect to a predefined database for CC_2.
-     *
-     * @return Connection
      */
-    public static function CC_2_DB()
+    public static function CC_2_DB(): Connection
     {
-        return Database::connection('CC_2_DB');
+        return Database::connection(config('idqueuepackagist.admin'));
     }
 
     /**
      * Connect to a predefined database for IDQ Logs.
-     *
-     * @return Connection
      */
-    public static function IDQ_Logs()
+    public static function IDQ_Logs(): Connection
     {
-        return Database::connection('IDQ_Logs');
+        return Database::connection(config('idqueuepackagist.admin-logs'));
     }
 
     /**
      * Connect to a predefined demo database.
-     *
-     * @return Connection
      */
-    public static function IDQ_DB_Demo()
+    public static function IDQ_DB_Demo(): Connection
     {
-        return Database::connection('IDQ_DB_Demo');
+        return Database::connection(config('idqueuepackagist.company-demo'));
     }
 }

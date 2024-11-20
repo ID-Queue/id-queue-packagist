@@ -9,12 +9,8 @@ class Helper
 {
     /**
      * Validate a JWT token.
-     *
-     * @param  string  $jwt
-     * @param string $secret
-     * @return array
      */
-    public static function isJwtValid($jwt, string $secret = 'secret')
+    public static function isJwtValid(string $jwt, string $secret = 'secret'): array
     {
         try {
             // Split the JWT into its components
@@ -46,7 +42,7 @@ class Helper
             // Build a signature based on the header and payload using the secret
             $base64UrlHeader = self::base64UrlEncode($header);
             $base64UrlPayload = self::base64UrlEncode($payload);
-            $signature = hash_hmac('SHA256', $base64UrlHeader . '.' . $base64UrlPayload, $secret, true);
+            $signature = hash_hmac('SHA256', $base64UrlHeader.'.'.$base64UrlPayload, $secret, true);
             $base64UrlSignature = self::base64UrlEncode($signature);
 
             // Verify it matches the signature provided in the JWT
@@ -57,7 +53,7 @@ class Helper
                 'details' => $payload,
             ];
 
-            if ($isTokenExpired || !$isSignatureValid) {
+            if ($isTokenExpired || ! $isSignatureValid) {
                 $res['check'] = false;
             } else {
                 $res['check'] = true;
@@ -67,7 +63,7 @@ class Helper
 
         } catch (Exception $e) {
             // Log or handle the error gracefully
-            Log::error('JWT validation failed: ' . $e->getMessage());
+            Log::error('JWT validation failed: '.$e->getMessage());
 
             return [
                 'check' => false,
@@ -76,13 +72,10 @@ class Helper
         }
     }
 
-
     /**
      * Helper method to encode base64 URL-safe
-     *
-     * @param  string  $data
      */
-    private static function base64UrlEncode($data): string
+    private static function base64UrlEncode(string $data): string
     {
         return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
     }

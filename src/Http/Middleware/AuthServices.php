@@ -6,7 +6,6 @@ use Closure;
 use IdQueue\IdQueuePackagist\Services\ConnectionService;
 use IdQueue\IdQueuePackagist\Utils\Helper;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
@@ -15,8 +14,6 @@ class AuthServices
     /**
      * Handle an incoming request.
      *
-     * @param Request $request
-     * @param Closure $next
      * @return JsonResponse
      */
     public function handle(Request $request, Closure $next)
@@ -58,9 +55,6 @@ class AuthServices
 
     /**
      * Return a standardized error response.
-     *
-     * @param string $message
-     * @return JsonResponse
      */
     private function errorResponse(string $message): JsonResponse
     {
