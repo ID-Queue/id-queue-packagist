@@ -1,6 +1,6 @@
 <?php
 
-namespace IdQueue\IdQueuePackage\Commands;
+namespace IdQueue\IdQueuePackagist\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;

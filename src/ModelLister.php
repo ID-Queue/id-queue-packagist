@@ -1,12 +1,12 @@
 <?php
 
-namespace IdQueue\IdQueuePackage;
+namespace IdQueue\IdQueuePackagist;
 
 use Illuminate\Support\Facades\File;
 
 class ModelLister
 {
-    protected $modelsPath;
+    protected string $modelsPath;
 
     public function __construct()
     {
@@ -15,10 +15,8 @@ class ModelLister
 
     /**
      * Get a list of all Laravel Models.
-     *
-     * @return array
      */
-    public function listModels()
+    public function listModels(): array
     {
         $models = [];
 
