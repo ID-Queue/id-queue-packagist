@@ -25,12 +25,15 @@ class User extends Authenticatable
 
     protected $table = 'User_Accounts';
 
-    protected array $dates = [
-        'Account_PW_Last_Modified',
-        'Account_Created',
-        'Staff_Last_Action',
-        'Last_Login',
-        'Check_In_At',
+    /**
+     * Define casts for datetime attributes.
+     */
+    protected $casts = [
+        'Account_PW_Last_Modified' => 'datetime',
+        'Account_Created' => 'datetime',
+        'Staff_Last_Action' => 'datetime',
+        'Last_Login' => 'datetime',
+        'Check_In_At' => 'datetime',
     ];
 
     // Disabling timestamps if not present in the table
