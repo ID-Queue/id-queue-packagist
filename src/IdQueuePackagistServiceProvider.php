@@ -3,6 +3,7 @@
 namespace IdQueue\IdQueuePackagist;
 
 use IdQueue\IdQueuePackagist\Commands\ExportModelsCommand;
+use IdQueue\IdQueuePackagist\Http\Middleware\AuthServices;
 use Illuminate\Support\ServiceProvider;
 
 class IdQueuePackagistServiceProvider extends ServiceProvider
@@ -16,6 +17,7 @@ class IdQueuePackagistServiceProvider extends ServiceProvider
         $this->app->singleton(ModelLister::class, function ($app) {
             return new ModelLister;
         });
+        $this->app['router']->aliasMiddleware('auth.services', AuthServices::class);
 
         // Merge the package configuration
         $this->mergeConfigFrom(
