@@ -2,6 +2,7 @@
 
 namespace IdQueue\IdQueuePackagist\Utils;
 
+use DB;
 use Exception;
 use Log;
 
@@ -78,5 +79,63 @@ class Helper
     private static function base64UrlEncode(string $data): string
     {
         return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+    }
+
+    /**
+     * Get the first and last name of a user by department ID and username.
+     *
+     * @param int $deptId The department ID.
+     * @param string $username The username.
+     * @return array|false Array with first and last name or false if not found.
+     */
+    public static function getUserFirstLastName(int $deptId, string $username): array|false
+    {
+        $user = DB::table('User_Accounts')
+            ->where('Company_Dept_ID', $deptId)
+            ->where('username', $username)
+            ->select('First_name', 'Last_name')
+            ->first();
+
+        return $user ? [$user->First_name, $user->Last_name] : false;
+    }
+
+    /**
+     * Get department values for a given department ID.
+     *
+     * @param int $deptId The department ID.
+     * @return array An array of department values.
+     */
+    public static function getDeptValue(int $deptId): array
+    {
+        $data = DB::table('Dept_Pre_Settings')
+            ->where('Company_Dept_ID', $deptId)
+            ->select([
+                'Company_Dept',
+                'Service_Single',
+                'Staff_Single',
+                'Location_Single',
+                'Zone_Single',
+                'Building_Single',
+                'Person_ID',
+                'Second_Person_ID',
+                'Requester_ID',
+            ])
+            ->first();
+
+        if (!$data) {
+            return [];
+        }
+
+        return [
+            $data->Company_Dept,
+            $data->Service_Single,
+            $data->Staff_Single,
+            $data->Location_Single,
+            $data->Zone_Single,
+            $data->Building_Single,
+            $data->Person_ID,
+            $data->Second_Person_ID,
+            $data->Requester_ID,
+        ];
     }
 }
