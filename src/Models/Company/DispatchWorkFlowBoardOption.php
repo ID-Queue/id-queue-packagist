@@ -13,7 +13,6 @@ class DispatchWorkFlowBoardOption extends Model
     public $incrementing = false;
 
     // Primary key for the table
-    public $timestamps = false;
 
     // The type of the primary key field (UUID)
     protected $table = 'Dispatch_WorkFlow_Board_Options'; // since GUID is not auto-incrementing

@@ -13,7 +13,6 @@ class iOSDeviceToken extends Model
     public $incrementing = false;
 
     // Primary key for the table
-    public $timestamps = false;
 
     // Disable auto-incrementing as 'ID' is not an auto-incrementing column
     protected $table = 'iOS_Device_Tokens';

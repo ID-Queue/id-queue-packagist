@@ -15,8 +15,6 @@ class DispatchChart extends Model
 
     public $incrementing = false;
 
-    public $timestamps = false;
-
     protected $table = 'Dispatch_Chart';
 
     protected $primaryKey = 'GUID';

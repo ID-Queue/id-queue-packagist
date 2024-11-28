@@ -13,7 +13,6 @@ class SequelizeMeta extends Model
     public $incrementing = false;
 
     // Disable auto-incrementing as 'name' is the primary key, and it is not auto-incremented
-    public $timestamps = false;
 
     // Disable timestamps as the table does not have created_at and updated_at columns
     protected $table = 'SequelizeMeta';

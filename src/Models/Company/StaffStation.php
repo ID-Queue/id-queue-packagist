@@ -9,8 +9,6 @@ class StaffStation extends Model
 {
     use CompanyDbConnection;
 
-    public $timestamps = false;
-
     protected $table = 'Staff_Station';
 
     protected $fillable = [

@@ -11,8 +11,6 @@ class AllowedAutoReqLocation extends Model
 
     public $incrementing = true;
 
-    public $timestamps = false;
-
     protected $table = 'Allowed_Auto_Req_Location';
 
     protected $primaryKey = 'ID';

@@ -14,8 +14,6 @@ class DispatchReoccuringEvent extends Model
 
     public $incrementing = false;
 
-    public $timestamps = false;
-
     protected $table = 'Dispatch_Reoccuring_Events';
 
     protected $primaryKey = 'GUID';

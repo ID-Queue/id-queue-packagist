@@ -10,7 +10,6 @@ class AdminServiceSetting extends Model
     use CompanyDbConnection;
 
     // Specify the table associated with the model
-    public $timestamps = false;
 
     protected $table = 'Admin_Service_Settings';
 

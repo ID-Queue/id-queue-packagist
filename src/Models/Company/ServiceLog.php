@@ -10,7 +10,6 @@ class ServiceLog extends Model
     use CompanyDbConnection;
 
     // Table associated with the model
-    public $timestamps = false;
 
     // Disable timestamps as the table does not have created_at and updated_at columns
     protected $table = 'Service_Logs';

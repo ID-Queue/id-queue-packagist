@@ -11,7 +11,7 @@ class UserZone extends Model
 
     public $incrementing = false;
 
-    public $timestamps = false; // Since there's no primary key
+    // Since there's no primary key
 
     protected $table = 'User_Zones'; // Disabling auto-incrementing since there is no primary key
 

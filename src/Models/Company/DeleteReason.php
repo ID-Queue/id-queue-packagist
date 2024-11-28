@@ -12,8 +12,6 @@ class DeleteReason extends Model
 
     public $incrementing = false;
 
-    public $timestamps = false;
-
     protected $table = 'Dispatch_Delete_Reason';
 
     protected $primaryKey = 'ID';

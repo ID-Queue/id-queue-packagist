@@ -11,8 +11,6 @@ class FCMToken extends Model
 
     public $incrementing = false;
 
-    public $timestamps = false;
-
     protected $table = 'FCM_Tokens';
 
     protected $primaryKey = 'GUID';

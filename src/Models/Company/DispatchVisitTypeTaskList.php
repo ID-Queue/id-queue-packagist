@@ -10,7 +10,6 @@ class DispatchVisitTypeTaskList extends Model
     use CompanyDbConnection;
 
     // Table associated with the model
-    public $timestamps = false;
 
     // Primary key for the table
     protected $table = 'Dispatch_Visit_Type_Task_List';

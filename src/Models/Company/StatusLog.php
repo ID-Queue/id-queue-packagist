@@ -10,7 +10,6 @@ class StatusLog extends Model
     use CompanyDbConnection;
 
     // Specify the table name since it doesn't follow the default plural naming convention
-    public $timestamps = false;
 
     // Set the primary key if it's not the default 'id'
     protected $table = 'User_Status_Logs';

@@ -12,7 +12,6 @@ class ActiveQueue extends Model
     use CompanyDbConnection;
 
     // Specify the table name since it doesn't follow the default plural naming convention
-    public $timestamps = false;
 
     protected $table = 'Dispatch_Chart_Active_Queue';
 

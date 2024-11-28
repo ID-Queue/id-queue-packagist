@@ -12,8 +12,6 @@ class AdminStaff extends Model
 
     public $incrementing = false;
 
-    public $timestamps = false;
-
     protected $table = 'Admin_Staff';
 
     protected $primaryKey = 'Acc_ID';

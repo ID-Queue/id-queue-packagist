@@ -13,8 +13,6 @@ class DispatchLocation extends Model
 
     public $incrementing = false;
 
-    public $timestamps = false;
-
     protected $table = 'Dispatch_Location';
 
     protected $primaryKey = 'Location_GUID';

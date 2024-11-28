@@ -11,8 +11,6 @@ class DispatchBuilding extends Model
 {
     use CompanyDbConnection;
 
-    public $timestamps = false;
-
     public $incrementing = false;
 
     protected $table = 'Dispatch_Building';

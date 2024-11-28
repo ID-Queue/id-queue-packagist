@@ -11,7 +11,6 @@ class DispatchStaff extends Model
     use CompanyDbConnection;
 
     // Specify the table name if it doesn't follow Laravel's naming conventions
-    public $timestamps = false;
 
     // Set the primary key if it's not the default 'id'
     protected $table = 'Dispatch_Staff';

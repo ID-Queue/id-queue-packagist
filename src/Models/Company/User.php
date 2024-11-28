@@ -21,8 +21,6 @@ class User extends Authenticatable
 
     const SUPER_ADMIN = 'superadmin';
 
-    public $timestamps = false;
-
     protected $table = 'User_Accounts';
 
     /**

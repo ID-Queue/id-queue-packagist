@@ -13,7 +13,6 @@ class SentRequestNotification extends Model
     public $incrementing = false;
 
     // Disable auto-incrementing (assuming ID is not auto-incrementing)
-    public $timestamps = false;
 
     // Disable timestamps as the table does not have created_at and updated_at columns
     protected $table = 'Sent_Request_Notifications';

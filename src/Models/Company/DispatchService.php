@@ -14,8 +14,6 @@ class DispatchService extends Model
 
     public $incrementing = false;
 
-    public $timestamps = false;
-
     protected $table = 'Dispatch_Service';
 
     protected $primaryKey = 'ID';

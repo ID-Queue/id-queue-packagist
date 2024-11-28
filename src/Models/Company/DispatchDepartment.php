@@ -15,7 +15,6 @@ class DispatchDepartment extends Model
     public $incrementing = false;
 
     // Primary key for the table
-    public $timestamps = false;
 
     // Disable auto-incrementing of the primary key (since the ID is not auto-incremented in your table)
     protected $table = 'Dispatch_Departments';

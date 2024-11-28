@@ -15,7 +15,6 @@ class DispatchHours extends Model
      *
      * @var bool
      */
-    public $timestamps = false;
 
     /**
      * The table associated with the model.

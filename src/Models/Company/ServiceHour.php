@@ -13,7 +13,6 @@ class ServiceHour extends Model
     public $incrementing = false;
 
     // Disable auto-incrementing as Dispatch_Service_ID is a GUID
-    public $timestamps = false;
 
     // Disable timestamps as the table does not have created_at and updated_at columns
     protected $table = 'Service_Hours';

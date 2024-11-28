@@ -12,8 +12,6 @@ class AccessToken extends Model
 
     public $incrementing = false;
 
-    public $timestamps = false;
-
     protected $table = 'Access_Token';
 
     protected $fillable = [

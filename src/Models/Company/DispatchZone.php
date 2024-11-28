@@ -13,8 +13,6 @@ class DispatchZone extends Model
 
     public $incrementing = false;
 
-    public $timestamps = false;
-
     protected $table = 'Dispatch_Zone';
 
     protected $primaryKey = 'Zone_GUID';

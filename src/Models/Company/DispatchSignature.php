@@ -13,7 +13,6 @@ class DispatchSignature extends Model
     public $incrementing = true;
 
     // Primary key for the table
-    public $timestamps = false;
 
     // Disable auto-incrementing of the primary key (if necessary)
     protected $table = 'Dispatch_Signatures'; // or false, if your ID is not auto-incremented

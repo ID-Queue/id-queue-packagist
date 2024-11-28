@@ -11,7 +11,6 @@ class AdminLog extends Model
     use CompanyDbConnection;
 
     // Specify the table name
-    public $timestamps = false;
 
     // Specify the primary key if it's not the default 'id'
     protected $table = 'Admin_logs';

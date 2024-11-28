@@ -10,22 +10,23 @@ class DeptPreSetting extends Model
 {
     use CompanyDbConnection;
 
-    // Specify the table name if it differs from the plural of the model name
-    public $incrementing = true;
-
-    // Define the primary key
+    // Specify the table name
     protected $table = 'Dept_Pre_Settings';
 
+    // Define the primary key
     protected $primaryKey = 'ID';
 
-    // If the primary key is not auto-incrementing (set to true if it's an auto-incrementing integer)
-    // Change to false if it's a UUID or non-incrementing
+    // Indicate if the primary key is auto-incrementing
+    public $incrementing = true;
 
-    // Define the key type (set to 'int' or 'string' as per your primary key type)
+    // Define the key type
     protected $keyType = 'int';
 
-    // Define the fillable fields
+    // Disable timestamps if not used
+
+    // Define the fillable fields for mass assignment
     protected $fillable = [
+        'ID', // Include only if explicitly assigning IDs
         'Company_Dept_ID',
         'Company_Dept',
         'Service_Single',
@@ -41,6 +42,7 @@ class DeptPreSetting extends Model
         'Second_Person_ID',
     ];
 
+    // Define attribute casting
     protected $casts = [
         'ID' => 'integer',
         'Company_Dept_ID' => 'integer',
@@ -52,12 +54,13 @@ class DeptPreSetting extends Model
         'Location_Single' => 'string',
         'Person_ID' => 'string',
         'Univ_Req_Password' => 'string',
-        'Account_Status' => 'boolean', // Assuming this is a bit field, can be cast to boolean
+        'Account_Status' => 'boolean', // Assuming this is a bit field
         'Visit_Type_Single' => 'string',
         'Requester_ID' => 'string',
         'Second_Person_ID' => 'string',
     ];
 
+    // Define the relationship with the DispatchDepartment model
     public function department(): BelongsTo
     {
         return $this->belongsTo(DispatchDepartment::class, 'Company_Dept_ID', 'ID');

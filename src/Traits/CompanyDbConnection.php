@@ -6,6 +6,8 @@ trait CompanyDbConnection
 {
     protected $connection;
 
+    public $timestamps = false;
+
     public function __construct()
     {
         $this->connection = config('idqueuepackagist.company');
