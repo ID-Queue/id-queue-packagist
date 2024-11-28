@@ -84,8 +84,8 @@ class Helper
     /**
      * Get the first and last name of a user by department ID and username.
      *
-     * @param int $deptId The department ID.
-     * @param string $username The username.
+     * @param  int  $deptId  The department ID.
+     * @param  string  $username  The username.
      * @return array|false Array with first and last name or false if not found.
      */
     public static function getUserFirstLastName(int $deptId, string $username): array|false
@@ -102,7 +102,7 @@ class Helper
     /**
      * Get department values for a given department ID.
      *
-     * @param int $deptId The department ID.
+     * @param  int  $deptId  The department ID.
      * @return array An array of department values.
      */
     public static function getDeptValue(int $deptId): array
@@ -122,7 +122,7 @@ class Helper
             ])
             ->first();
 
-        if (!$data) {
+        if (! $data) {
             return [];
         }
 

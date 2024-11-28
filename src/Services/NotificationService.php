@@ -12,8 +12,6 @@ class NotificationService
 
     /**
      * Constructor to inject MailService
-     *
-     * @param MailService $mailService
      */
     public function __construct(MailService $mailService)
     {
@@ -23,49 +21,41 @@ class NotificationService
     /**
      * Notify staff about a request.
      *
-     * @param int $deptId
-     * @param string $serviceName
-     * @param string|null $bcc
-     * @param string $url
-     * @return void
      * @throws Throwable
      */
-//    public function notifyStaff(int $deptId, string $serviceName, ?string $bcc, string $url): void
-//    {
-//        $emails = DB::table('User_Accounts AS ua')
-//            ->join('Dispatch_Staff AS ds', 'ds.Acc_GUID', '=', 'ua.GUID')
-//            ->where('ua.Company_Dept_ID', $deptId)
-//            ->where('ds.Company_Dept_ID', $deptId)
-//            ->where('ds.Service', $serviceName)
-//            ->whereNotNull('ua.email')
-//            ->where('ua.email_when_req', 1)
-//            ->where(function ($query) {
-//                $query->where('ua.Account_Deleted', 0)
-//                    ->orWhereNull('ua.Account_Deleted');
-//            })
-//            ->pluck('ua.email');
-//
-//        $subject = 'ID-Queue Request Notice';
-//        $message = view('mail.request_notice', ['url' => $url])->render();
-//
-//        foreach ($emails as $email) {
-//            $this->mailService->sendMail($email, $subject, $bcc, $message);
-//        }
-//    }
+    public function notifyStaff(int $deptId, string $serviceName, ?string $bcc, string $url): void
+    {
+        $emails = DB::table('User_Accounts AS ua')
+            ->join('Dispatch_Staff AS ds', 'ds.Acc_GUID', '=', 'ua.GUID')
+            ->where('ua.Company_Dept_ID', $deptId)
+            ->where('ds.Company_Dept_ID', $deptId)
+            ->where('ds.Service', $serviceName)
+            ->whereNotNull('ua.email')
+            ->where('ua.email_when_req', 1)
+            ->where(function ($query) {
+                $query->where('ua.Account_Deleted', 0)
+                    ->orWhereNull('ua.Account_Deleted');
+            })
+            ->pluck('ua.email');
+
+        $this->mailService->staffEmailRequest([
+            'emails' => $emails,
+            'type' => 'Submit',
+            'data' => [
+                'url' => $url, // dynamic data
+            ],
+        ]);
+
+    }
 
     /**
      * Notify requester about submission success.
-     *
-     * @param int $deptId
-     * @param int $idVal
-     * @param string $subject
-     * @return array
      */
     public function notifyRequester(int $deptId, int $idVal, string $subject): array
     {
         $dispatchDataArray = $this->getDispatchChartData($deptId, $idVal);
 
-        if (empty($dispatchDataArray) || !isset($dispatchDataArray[0])) {
+        if (empty($dispatchDataArray) || ! isset($dispatchDataArray[0])) {
             return [
                 'status' => 'error',
                 'message' => 'No dispatch data found for the given ID and department.',
@@ -101,7 +91,7 @@ class NotificationService
                 'tmpDelInfo' => $dispatchData['Deleted_Reason'] ?: 'N/A',
                 'tmpAppNotes' => $dispatchData['Notes'] ?: 'No notes provided.',
                 'tmpAppFinNotes' => $dispatchData['Final_Notes'] ?: 'No final notes provided.',
-                'img_path' => config('app.url') . '/assets/image',
+                'img_path' => config('app.url').'/assets/image',
                 'tmpApprovedTime' => $dispatchData['Approved_Time'] ?: 'N/A',
                 'tmpArrivedTime' => $dispatchData['Arrived_Time'] ?: 'N/A',
                 'tmpSessionTime' => $dispatchData['Session_Time'] ?: 'N/A',
@@ -129,8 +119,8 @@ class NotificationService
     /**
      * Get Dispatch Chart Data and Format Results
      *
-     * @param int $dept_ID Department ID
-     * @param int $idVal Record ID
+     * @param  int  $dept_ID  Department ID
+     * @param  int  $idVal  Record ID
      * @return array Formatted data
      */
     private function getDispatchChartData(int $dept_ID, int $idVal): array
@@ -144,12 +134,12 @@ class NotificationService
             ->get()
             ->toArray();
 
-        $formatDate = fn($date) => $date ? date('m/d/Y g:i a', strtotime($date)) : '';
-        $formatValDate = fn($date) => $date ? date('m/d/Y H:i:s', strtotime($date)) : '';
+        $formatDate = fn ($date) => $date ? date('m/d/Y g:i a', strtotime($date)) : '';
+        $formatValDate = fn ($date) => $date ? date('m/d/Y H:i:s', strtotime($date)) : '';
 
         return array_map(function ($data) use ($dept_ID, $formatDate, $formatValDate) {
             $tmpApprBy = '';
-            if (!empty($data->Approved_by_Staff)) {
+            if (! empty($data->Approved_by_Staff)) {
                 [$tmpApprByFN, $tmpApprByLN] = Helper::getUserFirstLastName($dept_ID, $data->Approved_by_Staff);
                 $tmpApprBy = "$tmpApprByLN, $tmpApprByFN";
             }

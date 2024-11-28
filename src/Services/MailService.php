@@ -8,24 +8,16 @@ class MailService
 {
     /**
      * Send a mail using the external mail service.
-     *
-     * @param string $email
-     * @param string $subject
-     * @param string|null $cc
-     * @param string $msg
-     * @return array
      */
     public function sendMail(string $email, string $subject, ?string $cc, string $msg): array
     {
         $details = compact('email', 'subject', 'cc', 'msg');
+
         return $this->makePostRequest('api/send-mail', $details);
     }
 
     /**
      * Send an email request via API.
-     *
-     * @param array $requestData
-     * @return array
      */
     public function sendEmailRequest(array $requestData): array
     {
@@ -33,15 +25,19 @@ class MailService
     }
 
     /**
+     * Send an email request via API.
+     */
+    public function staffEmailRequest(array $requestData): array
+    {
+        return $this->makePostRequest('api/staff-mail', $requestData);
+    }
+
+    /**
      * Make a POST request to the mail service.
-     *
-     * @param string $endpoint
-     * @param array $data
-     * @return array
      */
     private function makePostRequest(string $endpoint, array $data): array
     {
-        $url = rtrim(config('idqueuepackagist.mail-service'), '/') . '/' . ltrim($endpoint, '/');
+        $url = rtrim(config('idqueuepackagist.mail-service'), '/').'/'.ltrim($endpoint, '/');
 
         try {
             $response = Http::withHeaders($this->getDefaultHeaders())->post($url, $data);
@@ -70,8 +66,6 @@ class MailService
 
     /**
      * Get the default headers for the HTTP request.
-     *
-     * @return array
      */
     private function getDefaultHeaders(): array
     {
