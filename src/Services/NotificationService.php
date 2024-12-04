@@ -61,7 +61,7 @@ class NotificationService
                 'message' => 'No dispatch data found for the given ID and department.',
             ];
         }
-        dd($dispatchDataArray);
+
         $dispatchData = $dispatchDataArray[0];
 
         // Get department values
