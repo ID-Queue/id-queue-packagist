@@ -6,6 +6,7 @@ namespace IdQueue\IdQueuePackagist\Models\Company;
 use Carbon\Carbon;
 use IdQueue\IdQueuePackagist\Enums\UserStatus;
 use IdQueue\IdQueuePackagist\Traits\CompanyDbConnection;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -158,5 +159,17 @@ class User extends Authenticatable
 
         // Return the mapped status or default to the current staff login state
         return $statusMapping[$currentStatus] ?? $this->Staff_Login_State; // Default to current state if no match
+    }
+
+
+    public static function getUsersByStatus(int $status): Collection
+    {
+        // Retrieve all users from the database
+        $users = self::all();
+
+        // Filter users based on the status returned by the getStatus function
+        return $users->filter(function ($user) use ($status) {
+            return $user->getStatus() === $status;
+        });
     }
 }
