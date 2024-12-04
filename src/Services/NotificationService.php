@@ -7,6 +7,7 @@ use IdQueue\IdQueuePackagist\Models\Company\DispatchChart;
 use IdQueue\IdQueuePackagist\Models\Company\User;
 use IdQueue\IdQueuePackagist\Utils\Helper;
 use Illuminate\Support\Facades\DB;
+use Log;
 use Throwable;
 
 class NotificationService
@@ -28,6 +29,7 @@ class NotificationService
      */
     public function notifyStaff(int $deptId, string $serviceName, ?string $bcc, string $url): void
     {
+        // Retrieve emails of staff members who match the criteria
         $emails = User::query()
             ->join('Dispatch_Staff as ds', 'ds.Acc_GUID', '=', 'User_Accounts.GUID')
             ->where('User_Accounts.Company_Dept_ID', $deptId)
@@ -39,16 +41,38 @@ class NotificationService
                 $query->where('User_Accounts.Account_Deleted', 0)
                     ->orWhereNull('User_Accounts.Account_Deleted');
             })
-            ->pluck('User_Accounts.email');
+            ->pluck('User_Accounts.email')
+            ->toArray(); // Ensures it's an array
 
-        $this->mailService->staffEmailRequest([
+        // Ensure there are emails to send
+        if (empty($emails)) {
+            // Log or handle the case where no emails are found
+            Log::info("No emails found for notifying staff in dept {$deptId} for service {$serviceName}.");
+            return;
+        }
+
+        // Prepare email data
+        $emailData = [
             'emails' => $emails,
+            'bcc' => $bcc ? explode(',', $bcc) : [], // Handle optional BCC if provided
             'type' => 'Submit',
             'data' => [
-                'url' => $url, // dynamic data
+                'url' => $url, // Dynamic data to include in the email
             ],
-        ]);
+        ];
 
+        try {
+            // Call the mail service to send the email
+            $this->mailService->staffEmailRequest($emailData);
+        } catch (\Exception $e) {
+            // Log the error for debugging
+            Log::error("Failed to notify staff: " . $e->getMessage(), [
+                'deptId' => $deptId,
+                'serviceName' => $serviceName,
+                'bcc' => $bcc,
+                'url' => $url,
+            ]);
+        }
     }
 
     /**
@@ -129,24 +153,22 @@ class NotificationService
      */
     private function getDispatchChartData(int $dept_ID, int $idVal): array
     {
-
         $records = DispatchChart::query()
             ->join('Dispatch_Location as dl', 'dl.Location_GUID', '=', 'Dispatch_Chart.App_Location_GUID')
             ->join('Dispatch_Building as db', 'db.Building_GUID', '=', 'Dispatch_Chart.App_Building_GUID')
             ->where('Dispatch_Chart.Company_Dept_ID', $dept_ID)
             ->where('Dispatch_Chart.ID', $idVal)
             ->select('Dispatch_Chart.*', 'dl.name as Location_Name', 'db.name as Building_Name')
-            ->get()
-            ->toArray();
+            ->get();
 
-        $formatDate = fn ($date) => $date ? date('m/d/Y g:i a', strtotime($date)) : '';
-        $formatValDate = fn ($date) => $date ? date('m/d/Y H:i:s', strtotime($date)) : '';
+        $formatDate = fn($date) => $date ? date('m/d/Y g:i a', strtotime($date)) : '';
+        $formatValDate = fn($date) => $date ? date('m/d/Y H:i:s', strtotime($date)) : '';
 
-        return array_map(function ($data) use ($dept_ID, $formatDate, $formatValDate) {
-            $tmpApprBy = '';
-            if (! empty($data->Approved_by_Staff)) {
-                [$tmpApprByFN, $tmpApprByLN] = Helper::getUserFirstLastName($dept_ID, $data->Approved_by_Staff);
-                $tmpApprBy = "$tmpApprByLN, $tmpApprByFN";
+        return $records->map(function ($data) use ($dept_ID, $formatDate, $formatValDate) {
+            $approvedBy = '';
+            if (!empty($data->Approved_by_Staff)) {
+                [$approvedByFN, $approvedByLN] = Helper::getUserFirstLastName($dept_ID, $data->Approved_by_Staff);
+                $approvedBy = "$approvedByLN, $approvedByFN";
             }
 
             return [
@@ -163,7 +185,7 @@ class NotificationService
                 'Req_EMail' => $data->Req_EMail,
                 'App_Declined' => $data->App_Declined,
                 'App_Done' => $data->App_Done,
-                'Approved_By' => $tmpApprBy,
+                'Approved_By' => $approvedBy,
                 'Pat_MRN' => $data->Pat_MRN,
                 'Req_Time' => $formatDate($data->Req_Time),
                 'Approved_Time' => $formatDate($data->Approved_Time),
@@ -183,6 +205,7 @@ class NotificationService
                 'Deleted_By_Name' => $data->Deleted_By_Name,
                 'Deleted_Reason' => $data->Deleted_Reason,
             ];
-        }, $records);
+        })->toArray();
     }
+
 }
