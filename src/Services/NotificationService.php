@@ -3,6 +3,8 @@
 namespace IdQueue\IdQueuePackagist\Services;
 
 use IdQueue\IdQueuePackagist\Models\Company\DeptPreSetting;
+use IdQueue\IdQueuePackagist\Models\Company\DispatchChart;
+use IdQueue\IdQueuePackagist\Models\Company\User;
 use IdQueue\IdQueuePackagist\Utils\Helper;
 use Illuminate\Support\Facades\DB;
 use Throwable;
@@ -26,18 +28,18 @@ class NotificationService
      */
     public function notifyStaff(int $deptId, string $serviceName, ?string $bcc, string $url): void
     {
-        $emails = DB::table('User_Accounts AS ua')
-            ->join('Dispatch_Staff AS ds', 'ds.Acc_GUID', '=', 'ua.GUID')
-            ->where('ua.Company_Dept_ID', $deptId)
+        $emails = User::query()
+            ->join('Dispatch_Staff as ds', 'ds.Acc_GUID', '=', 'User_Accounts.GUID')
+            ->where('User_Accounts.Company_Dept_ID', $deptId)
             ->where('ds.Company_Dept_ID', $deptId)
             ->where('ds.Service', $serviceName)
-            ->whereNotNull('ua.email')
-            ->where('ua.email_when_req', 1)
+            ->whereNotNull('User_Accounts.email')
+            ->where('User_Accounts.email_when_req', 1)
             ->where(function ($query) {
-                $query->where('ua.Account_Deleted', 0)
-                    ->orWhereNull('ua.Account_Deleted');
+                $query->where('User_Accounts.Account_Deleted', 0)
+                    ->orWhereNull('User_Accounts.Account_Deleted');
             })
-            ->pluck('ua.email');
+            ->pluck('User_Accounts.email');
 
         $this->mailService->staffEmailRequest([
             'emails' => $emails,
@@ -127,12 +129,13 @@ class NotificationService
      */
     private function getDispatchChartData(int $dept_ID, int $idVal): array
     {
-        $records = DB::table('Dispatch_Chart AS dc')
-            ->join('Dispatch_Location AS dl', 'dl.Location_GUID', '=', 'dc.App_Location_GUID')
-            ->join('Dispatch_Building AS db', 'db.Building_GUID', '=', 'dc.App_Building_GUID')
-            ->where('dc.Company_Dept_ID', $dept_ID)
-            ->where('dc.ID', $idVal)
-            ->select('dc.*', 'dl.name AS Location_Name', 'db.name AS Building_Name')
+
+        $records = DispatchChart::query()
+            ->join('Dispatch_Location as dl', 'dl.Location_GUID', '=', 'Dispatch_Chart.App_Location_GUID')
+            ->join('Dispatch_Building as db', 'db.Building_GUID', '=', 'Dispatch_Chart.App_Building_GUID')
+            ->where('Dispatch_Chart.Company_Dept_ID', $dept_ID)
+            ->where('Dispatch_Chart.ID', $idVal)
+            ->select('Dispatch_Chart.*', 'dl.name as Location_Name', 'db.name as Building_Name')
             ->get()
             ->toArray();
 
