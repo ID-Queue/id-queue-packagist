@@ -10,6 +10,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class DispatchService extends Model
 {
     use CompanyDbConnection;
+
+    public $timestamps = false;  // Explicitly set this to false
+
     use HasUuids;
 
     public $incrementing = false;

@@ -9,6 +9,8 @@ class LastLocation extends Model
 {
     use CompanyDbConnection;
 
+    public $timestamps = false;  // Explicitly set this to false
+
     public $incrementing = false;  // No timestamps in the table
 
     protected $table = 'Last_Location'; // No primary key defined

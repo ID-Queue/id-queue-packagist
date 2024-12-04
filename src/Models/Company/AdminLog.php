@@ -10,6 +10,8 @@ class AdminLog extends Model
 {
     use CompanyDbConnection;
 
+    public $timestamps = false;  // Explicitly set this to false
+
     // Specify the table name
 
     // Specify the primary key if it's not the default 'id'

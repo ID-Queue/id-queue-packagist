@@ -9,6 +9,8 @@ class StatusLog extends Model
 {
     use CompanyDbConnection;
 
+    public $timestamps = false;  // Explicitly set this to false
+
     // Specify the table name since it doesn't follow the default plural naming convention
 
     // Set the primary key if it's not the default 'id'

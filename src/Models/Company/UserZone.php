@@ -9,6 +9,8 @@ class UserZone extends Model
 {
     use CompanyDbConnection;
 
+    public $timestamps = false;  // Explicitly set this to false
+
     public $incrementing = false;
 
     // Since there's no primary key

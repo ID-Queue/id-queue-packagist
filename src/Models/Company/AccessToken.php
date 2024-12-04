@@ -10,6 +10,8 @@ class AccessToken extends Model
 {
     use CompanyDbConnection;
 
+    public $timestamps = false;  // Explicitly set this to false
+
     public $incrementing = false;
 
     protected $table = 'Access_Token';

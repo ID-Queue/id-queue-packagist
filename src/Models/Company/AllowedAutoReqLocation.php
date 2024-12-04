@@ -9,6 +9,8 @@ class AllowedAutoReqLocation extends Model
 {
     use CompanyDbConnection;
 
+    public $timestamps = false;  // Explicitly set this to false
+
     public $incrementing = true;
 
     protected $table = 'Allowed_Auto_Req_Location';

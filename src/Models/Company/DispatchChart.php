@@ -11,6 +11,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class DispatchChart extends Model
 {
     use CompanyDbConnection;
+
+    public $timestamps = false;  // Explicitly set this to false
+
     use HasUuids;
 
     public $incrementing = false;

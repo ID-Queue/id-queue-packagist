@@ -10,6 +10,8 @@ class DeleteReason extends Model
 {
     use CompanyDbConnection;
 
+    public $timestamps = false;  // Explicitly set this to false
+
     public $incrementing = false;
 
     protected $table = 'Dispatch_Delete_Reason';

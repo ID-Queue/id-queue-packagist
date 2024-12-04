@@ -10,6 +10,8 @@ class DispatchNotification extends Model
 {
     use CompanyDbConnection;
 
+    public $timestamps = false;  // Explicitly set this to false
+
     /**
      * Indicates if the model should use auto-incrementing IDs.
      *

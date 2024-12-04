@@ -9,6 +9,8 @@ class FCMToken extends Model
 {
     use CompanyDbConnection;
 
+    public $timestamps = false;  // Explicitly set this to false
+
     public $incrementing = false;
 
     protected $table = 'FCM_Tokens';

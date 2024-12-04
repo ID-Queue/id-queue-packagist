@@ -10,6 +10,8 @@ class DeptPreSetting extends Model
 {
     use CompanyDbConnection;
 
+    public $timestamps = false;  // Explicitly set this to false
+
     // Specify the table name
     protected $table = 'Dept_Pre_Settings';
 

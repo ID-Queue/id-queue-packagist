@@ -11,6 +11,8 @@ class DispatchDepartment extends Model
 {
     use CompanyDbConnection;
 
+    public $timestamps = false;  // Explicitly set this to false
+
     // Table associated with the model
     public $incrementing = false;
 
