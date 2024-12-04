@@ -2,6 +2,7 @@
 
 namespace IdQueue\IdQueuePackagist\Services;
 
+use IdQueue\IdQueuePackagist\Models\Company\DeptPreSetting;
 use IdQueue\IdQueuePackagist\Utils\Helper;
 use Illuminate\Support\Facades\DB;
 use Throwable;
@@ -65,8 +66,9 @@ class NotificationService
         $dispatchData = $dispatchDataArray[0];
 
         // Get department values
-        [$deptName, $serviceSingle, $staffSingle, $locationSingle, $zoneSingle, $buildingSingle, $personID, $secPerID, $requesterID] = Helper::getDeptValue($deptId);
-
+        $deptSettings = DeptPreSetting::where('Company_Dept_ID',$deptId)
+            ->select('Service_Single', 'Staff_Single', 'Location_Single', 'Building_Single', 'Person_ID')
+            ->first();
         $emailRequestData = [
             'to' => $dispatchData['Req_EMail'] ?? 'default-email@example.com',
             'subject' => $subject,
@@ -76,15 +78,15 @@ class NotificationService
                 'bdy' => 'We are pleased to inform you that your request was successfully submitted.',
                 'tmpID' => $dispatchData['ID'],
                 'tmpReqTime' => $dispatchData['Req_Time'] ?? 'N/A',
-                'tmpBld' => $dispatchData['Building_Name'] ?? $buildingSingle,
-                'tmpLoc' => $dispatchData['Location_Name'] ?? $locationSingle,
-                'locationSingle' => $locationSingle,
-                'personID' => $personID,
+                'tmpBld' => $dispatchData['Building_Name'] ??  $deptSettings->Building_Single,
+                'tmpLoc' => $dispatchData['Location_Name'] ??  $deptSettings->Location_Single,
+                'locationSingle' => $deptSettings->Location_Single,
+                'personID' =>  $deptSettings->Person_ID,
                 'tmpPatMRN' => $dispatchData['Pat_MRN'] ?? 'N/A',
                 'tmpVt' => $dispatchData['Visit_Type'] ?? 'N/A',
-                'tmpJob' => $dispatchData['Job'] ?? $serviceSingle,
-                'serviceSingle' => $serviceSingle,
-                'staffSingle' => $staffSingle,
+                'tmpJob' => $dispatchData['Job'] ?? $deptSettings->Service_Single,
+                'serviceSingle' => $deptSettings->Service_Single,
+                'staffSingle' => $deptSettings->Staff_Single,
                 'tmpApprBy' => $dispatchData['Approved_By'] ?: 'N/A',
                 'tmpWho' => $dispatchData['Who_Is_Name'] ?? 'N/A',
                 'tmpDelBy' => $dispatchData['Deleted_By_Name'] ?: 'N/A',
