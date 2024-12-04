@@ -1,10 +1,10 @@
 <?php
 
 namespace IdQueue\IdQueuePackagist\Models\Company;
-
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
 use Carbon\Carbon;
+use IdQueue\IdQueuePackagist\Enums\UserStatus;
 use IdQueue\IdQueuePackagist\Traits\CompanyDbConnection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+
 
 class User extends Authenticatable
 {
@@ -122,11 +123,11 @@ class User extends Authenticatable
     {
         // Optimize Staff_Login_State handling by returning early
         if ($this->Staff_Login_State === 1) {
-            return 0; // If logged in, reset state
+            return UserStatus::Available; // If logged in, reset state to Available
         }
 
         if ($this->Staff_Login_State === 0) {
-            return 8; // Change state to something else
+            return UserStatus::CheckOut; // Change state to CheckOut (formerly 8)
         }
 
         // Cache the status query to reduce database calls
@@ -137,7 +138,7 @@ class User extends Authenticatable
 
         // Check if dispatched to staff
         if (ActiveQueue::return_IfDispatchedToStaff($this->GUID, $this->Company_Dept_ID) === 1) {
-            return 1; // Dispatched state
+            return UserStatus::Dispatched; // Dispatched state (formerly 1)
         }
 
         return $this->Staff_Login_State; // Default state if none of the above conditions match
@@ -149,12 +150,13 @@ class User extends Authenticatable
     private function mapStatus(int $currentStatus): int
     {
         $statusMapping = [
-            7 => 4, // Paused
-            4 => 5, // In session
-            3 => 6, // SW
-            2 => 7, // Thumbs
+            7 => UserStatus::Paused, // Paused
+            4 => UserStatus::InProgress, // In session
+            3 => UserStatus::Arrived, // SW
+            2 => UserStatus::Accepted, // Thumbs
         ];
 
+        // Return the mapped status or default to the current staff login state
         return $statusMapping[$currentStatus] ?? $this->Staff_Login_State; // Default to current state if no match
     }
 }
