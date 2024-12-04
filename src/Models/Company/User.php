@@ -114,4 +114,47 @@ class User extends Authenticatable
     {
         return Carbon::parse($value)->toDateTimeString();
     }
+
+    /**
+     * Get the current status of the staff member based on conditions.
+     */
+    public function getStatus(): int
+    {
+        // Optimize Staff_Login_State handling by returning early
+        if ($this->Staff_Login_State === 1) {
+            return 0; // If logged in, reset state
+        }
+
+        if ($this->Staff_Login_State === 0) {
+            return 8; // Change state to something else
+        }
+
+        // Cache the status query to reduce database calls
+        $currentStatus = ActiveQueue::returnStaffCurrentStatus($this->GUID, $this->Company_Dept_ID);
+        if ($currentStatus > 0) {
+            return $this->mapStatus($currentStatus); // Map status based on the currentStatus value
+        }
+
+        // Check if dispatched to staff
+        if (ActiveQueue::return_IfDispatchedToStaff($this->GUID, $this->Company_Dept_ID) === 1) {
+            return 1; // Dispatched state
+        }
+
+        return $this->Staff_Login_State; // Default state if none of the above conditions match
+    }
+
+    /**
+     * Map current status values to meaningful values.
+     */
+    private function mapStatus(int $currentStatus): int
+    {
+        $statusMapping = [
+            7 => 4, // Paused
+            4 => 5, // In session
+            3 => 6, // SW
+            2 => 7, // Thumbs
+        ];
+
+        return $statusMapping[$currentStatus] ?? $this->Staff_Login_State; // Default to current state if no match
+    }
 }

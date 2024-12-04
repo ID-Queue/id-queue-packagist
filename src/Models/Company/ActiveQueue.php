@@ -6,6 +6,7 @@ use IdQueue\IdQueuePackagist\Traits\CompanyDbConnection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 
 class ActiveQueue extends Model
 {
@@ -112,5 +113,73 @@ class ActiveQueue extends Model
     public function userAccount(): BelongsTo
     {
         return $this->belongsTo(User::class, 'Staff_GUID', 'GUID');
+    }
+
+    public static function returnStaffCurrentStatus($staffID, $dept_ID): int
+    {
+        // Define the query using Laravel's Query Builder
+        $status = DB::table('Dispatch_Chart_Active_Queue as dca')
+            ->join('Dispatch_Service as ds', 'dca.App_Service', '=', 'ds.Service_Name')
+            ->select(
+                'dca.*',
+                DB::raw("
+                    CASE
+                        WHEN App_Paused = 1 THEN 7
+                        WHEN App_Session = 1 THEN 4
+                        WHEN App_Arrived = 1 THEN 3
+                        WHEN App_Approved = 1 THEN 2
+                        ELSE 0
+                    END as status
+                ")
+            )
+            ->where('dca.Company_Dept_ID', '=', $dept_ID)
+            ->where('Staff_GUID', '=', $staffID)
+            ->where(function ($query) {
+                $query->whereNull('App_Declined')
+                    ->orWhere('App_Declined', '<>', 'true');
+            })
+            ->where(function ($query) {
+                $query->whereNull('App_Done')
+                    ->orWhere('App_Done', '<>', 'true');
+            })
+            ->orderByRaw("
+                CASE
+                    WHEN App_Paused = 1 THEN CONVERT(datetime, Paused_Time, 101)
+                    WHEN App_Session = 1 THEN CONVERT(datetime, Session_Time, 101)
+                    WHEN App_Arrived = 1 THEN CONVERT(datetime, Arrived_Time, 101)
+                    WHEN App_Approved = 1 THEN CONVERT(datetime, Approved_Time, 101)
+                    ELSE CONVERT(datetime, Req_time, 101)
+                END DESC
+            ")
+            ->first();
+
+        // Check if any row is returned and return the status, otherwise return 0
+        if ($status) {
+            return $status->status;
+        }
+
+        return 0; // Return 0 if no active status is found
+    }
+
+    public static function returnIfDispatchedToStaff($staffGUID, $dept_ID): bool
+    {
+        // Use Laravel's Query Builder to count dispatched items
+        $count = DB::table('Dispatch_Chart_Active_Queue as dca')
+            ->join('Dispatch_Service as ds', 'dca.App_Service', '=', 'ds.Service_Name')
+            ->where('dca.Company_Dept_ID', '=', $dept_ID)
+            ->where(function ($query) {
+                $query->whereNull('App_Declined')
+                    ->orWhere('App_Declined', '<>', 'true');
+            })
+            ->where(function ($query) {
+                $query->whereNull('App_Done')
+                    ->orWhere('App_Done', '<>', 'true');
+            })
+            ->where('dca.Staff_GUID', '=', $staffGUID)
+            ->whereNull('App_Pre_Schedual_Time')
+            ->count();
+
+        // Return true if there are dispatched items, otherwise false
+        return $count > 0;
     }
 }
