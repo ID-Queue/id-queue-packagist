@@ -90,6 +90,11 @@ class ActiveQueue extends Model
         return $this->belongsTo(DispatchLocation::class, 'App_Location_GUID');
     }
 
+    public function service(): BelongsTo
+    {
+        return $this->belongsTo(DispatchService::class, 'App_Service', 'Service_Name');
+    }
+
     public function dispatchBuilding(): BelongsTo
     {
         return $this->belongsTo(DispatchBuilding::class, 'App_Building_GUID');
@@ -117,23 +122,21 @@ class ActiveQueue extends Model
 
     public static function returnStaffCurrentStatus($staffID, $dept_ID): int
     {
-        // Define the query using Laravel's Query Builder
-        $status = DB::table('Dispatch_Chart_Active_Queue as dca')
-            ->join('Dispatch_Service as ds', 'dca.App_Service', '=', 'ds.Service_Name')
+        $status = self::with('service')
             ->select(
-                'dca.*',
-                DB::raw("
-                    CASE
-                        WHEN App_Paused = 1 THEN 7
-                        WHEN App_Session = 1 THEN 4
-                        WHEN App_Arrived = 1 THEN 3
-                        WHEN App_Approved = 1 THEN 2
-                        ELSE 0
-                    END as status
-                ")
+                'Dispatch_Chart_Active_Queue.*',
+                DB::raw('
+            CASE
+                WHEN App_Paused = 1 THEN 7
+                WHEN App_Session = 1 THEN 4
+                WHEN App_Arrived = 1 THEN 3
+                WHEN App_Approved = 1 THEN 2
+                ELSE 0
+            END as status
+        ')
             )
-            ->where('dca.Company_Dept_ID', '=', $dept_ID)
-            ->where('Staff_GUID', '=', $staffID)
+            ->where('Company_Dept_ID', $dept_ID)
+            ->where('Staff_GUID', $staffID)
             ->where(function ($query) {
                 $query->whereNull('App_Declined')
                     ->orWhere('App_Declined', '<>', 'true');
@@ -142,31 +145,25 @@ class ActiveQueue extends Model
                 $query->whereNull('App_Done')
                     ->orWhere('App_Done', '<>', 'true');
             })
-            ->orderByRaw("
-                CASE
-                    WHEN App_Paused = 1 THEN CONVERT(datetime, Paused_Time, 101)
-                    WHEN App_Session = 1 THEN CONVERT(datetime, Session_Time, 101)
-                    WHEN App_Arrived = 1 THEN CONVERT(datetime, Arrived_Time, 101)
-                    WHEN App_Approved = 1 THEN CONVERT(datetime, Approved_Time, 101)
-                    ELSE CONVERT(datetime, Req_time, 101)
-                END DESC
-            ")
+            ->orderByRaw('
+        CASE
+            WHEN App_Paused = 1 THEN CONVERT(DATETIME, Paused_Time, 101)
+            WHEN App_Session = 1 THEN CONVERT(DATETIME, Session_Time, 101)
+            WHEN App_Arrived = 1 THEN CONVERT(DATETIME, Arrived_Time, 101)
+            WHEN App_Approved = 1 THEN CONVERT(DATETIME, Approved_Time, 101)
+            ELSE CONVERT(DATETIME, Req_time, 101)
+        END DESC
+    ')
             ->first();
 
-        // Check if any row is returned and return the status, otherwise return 0
-        if ($status) {
-            return $status->status;
-        }
-
-        return 0; // Return 0 if no active status is found
+        return $status ? $status->status : 0;
     }
 
     public static function returnIfDispatchedToStaff($staffGUID, $dept_ID): bool
     {
         // Use Laravel's Query Builder to count dispatched items
-        $count = DB::table('Dispatch_Chart_Active_Queue as dca')
-            ->join('Dispatch_Service as ds', 'dca.App_Service', '=', 'ds.Service_Name')
-            ->where('dca.Company_Dept_ID', '=', $dept_ID)
+        $count = self::join('Dispatch_Service as ds', 'Dispatch_Chart_Active_Queue.App_Service', '=', 'ds.Service_Name')
+            ->where('Dispatch_Chart_Active_Queue.Company_Dept_ID', '=', $dept_ID)
             ->where(function ($query) {
                 $query->whereNull('App_Declined')
                     ->orWhere('App_Declined', '<>', 'true');
@@ -175,7 +172,7 @@ class ActiveQueue extends Model
                 $query->whereNull('App_Done')
                     ->orWhere('App_Done', '<>', 'true');
             })
-            ->where('dca.Staff_GUID', '=', $staffGUID)
+            ->where('Dispatch_Chart_Active_Queue.Staff_GUID', '=', $staffGUID)
             ->whereNull('App_Pre_Schedual_Time')
             ->count();
 

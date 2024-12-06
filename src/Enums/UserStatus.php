@@ -18,20 +18,25 @@ use BenSampo\Enum\Enum;
 final class UserStatus extends Enum
 {
     const Available = 0;
+
     const Dispatched = 1;
+
     const Lunch = 2;
+
     const NotAvailable = 3;
+
     const Paused = 4;
+
     const InProgress = 5;
+
     const Arrived = 6;
+
     const Accepted = 7;
+
     const CheckOut = 8;
 
     /**
      * Get the image name associated with the status.
-     *
-     * @param  mixed $value
-     * @return string
      */
     public static function image(mixed $value): string
     {
@@ -50,9 +55,6 @@ final class UserStatus extends Enum
 
     /**
      * Get the note associated with the status.
-     *
-     * @param  mixed $value
-     * @return string
      */
     public static function note(mixed $value): string
     {

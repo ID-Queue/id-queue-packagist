@@ -1,6 +1,7 @@
 <?php
 
 namespace IdQueue\IdQueuePackagist\Models\Company;
+
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
 use Carbon\Carbon;
@@ -13,7 +14,6 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-
 
 class User extends Authenticatable
 {
@@ -120,29 +120,23 @@ class User extends Authenticatable
     /**
      * Get the current status of the staff member based on conditions.
      */
-    public function getStatus(): int
+    public function getStatus()
     {
-        // Optimize Staff_Login_State handling by returning early
-        if ($this->Staff_Login_State === 1) {
-            return UserStatus::Available; // If logged in, reset state to Available
+        if ((int) $this->Staff_Login_State === 1) {
+            return UserStatus::Available;
         }
 
-        if ($this->Staff_Login_State === 0) {
-            return UserStatus::CheckOut; // Change state to CheckOut (formerly 8)
-        }
-
-        // Cache the status query to reduce database calls
         $currentStatus = ActiveQueue::returnStaffCurrentStatus($this->GUID, $this->Company_Dept_ID);
+
         if ($currentStatus > 0) {
-            return $this->mapStatus($currentStatus); // Map status based on the currentStatus value
+            return $this->mapStatus($currentStatus);
         }
 
-        // Check if dispatched to staff
-        if (ActiveQueue::return_IfDispatchedToStaff($this->GUID, $this->Company_Dept_ID) === 1) {
-            return UserStatus::Dispatched; // Dispatched state (formerly 1)
+        if (ActiveQueue::returnIfDispatchedToStaff($this->GUID, $this->Company_Dept_ID)) {
+            return UserStatus::Dispatched;
         }
 
-        return $this->Staff_Login_State; // Default state if none of the above conditions match
+        return $this->Staff_Login_State;
     }
 
     /**
@@ -156,20 +150,36 @@ class User extends Authenticatable
             3 => UserStatus::Arrived, // SW
             2 => UserStatus::Accepted, // Thumbs
         ];
-
         // Return the mapped status or default to the current staff login state
         return $statusMapping[$currentStatus] ?? $this->Staff_Login_State; // Default to current state if no match
     }
 
-
-    public static function getUsersByStatus(int $status): Collection
+    /**
+     * Get users by status, but apply the logic of the getStatus method.
+     */
+    public static function getUsersByStatus(UserStatus $status)
     {
-        // Retrieve all users from the database
+        // Get all users that could match the status.
         $users = self::all();
 
-        // Filter users based on the status returned by the getStatus function
+        // Filter users using the getStatus logic.
         return $users->filter(function ($user) use ($status) {
-            return $user->getStatus() === $status;
+            return $user->getStatus() === $status->value;
         });
     }
+
+    /**
+     * Get users by multiple statuses, applying the getStatus method logic.
+     */
+    public static function getUsersByMultipleStatus(array $statuses): Collection
+    {
+        // Get all users that could match the statuses.
+        $users = self::all();
+
+        // Filter users using the getStatus logic.
+        return $users->filter(function ($user) use ($statuses) {
+            return in_array($user->getStatus(), $statuses);
+        });
+    }
+
 }

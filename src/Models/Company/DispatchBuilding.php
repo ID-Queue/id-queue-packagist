@@ -40,4 +40,21 @@ class DispatchBuilding extends Model
     {
         return $this->belongsTo(DispatchDepartment::class, 'Company_Dept_ID', 'ID');
     }
+
+    /**
+     * Get building names by department ID and building IDs.
+     *
+     * @param  string  $bldID  Comma-separated building IDs
+     */
+    public static function getBuildingsByID(int $dept_ID, string $bldID): array
+    {
+        // Convert comma-separated string to an array
+        $buildingIDs = explode(',', $bldID);
+
+        // Query the database using Eloquent
+        return self::where('Company_Dept_ID', $dept_ID)
+            ->whereIn('Building_GUID', $buildingIDs)
+            ->pluck('name')
+            ->toArray();
+    }
 }

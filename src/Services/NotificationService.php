@@ -6,7 +6,6 @@ use IdQueue\IdQueuePackagist\Models\Company\DeptPreSetting;
 use IdQueue\IdQueuePackagist\Models\Company\DispatchChart;
 use IdQueue\IdQueuePackagist\Models\Company\User;
 use IdQueue\IdQueuePackagist\Utils\Helper;
-use Illuminate\Support\Facades\DB;
 use Log;
 use Throwable;
 
@@ -48,6 +47,7 @@ class NotificationService
         if (empty($emails)) {
             // Log or handle the case where no emails are found
             Log::info("No emails found for notifying staff in dept {$deptId} for service {$serviceName}.");
+
             return;
         }
 
@@ -66,7 +66,7 @@ class NotificationService
             $this->mailService->staffEmailRequest($emailData);
         } catch (\Exception $e) {
             // Log the error for debugging
-            Log::error("Failed to notify staff: " . $e->getMessage(), [
+            Log::error('Failed to notify staff: '.$e->getMessage(), [
                 'deptId' => $deptId,
                 'serviceName' => $serviceName,
                 'bcc' => $bcc,
@@ -92,7 +92,7 @@ class NotificationService
         $dispatchData = $dispatchDataArray[0];
 
         // Get department values
-        $deptSettings = DeptPreSetting::where('Company_Dept_ID',$deptId)
+        $deptSettings = DeptPreSetting::where('Company_Dept_ID', $deptId)
             ->select('Service_Single', 'Staff_Single', 'Location_Single', 'Building_Single', 'Person_ID')
             ->first();
         $emailRequestData = [
@@ -104,10 +104,10 @@ class NotificationService
                 'bdy' => 'We are pleased to inform you that your request was successfully submitted.',
                 'tmpID' => $dispatchData['ID'],
                 'tmpReqTime' => $dispatchData['Req_Time'] ?? 'N/A',
-                'tmpBld' => $dispatchData['Building_Name'] ??  $deptSettings->Building_Single,
-                'tmpLoc' => $dispatchData['Location_Name'] ??  $deptSettings->Location_Single,
+                'tmpBld' => $dispatchData['Building_Name'] ?? $deptSettings->Building_Single,
+                'tmpLoc' => $dispatchData['Location_Name'] ?? $deptSettings->Location_Single,
                 'locationSingle' => $deptSettings->Location_Single,
-                'personID' =>  $deptSettings->Person_ID,
+                'personID' => $deptSettings->Person_ID,
                 'tmpPatMRN' => $dispatchData['Pat_MRN'] ?? 'N/A',
                 'tmpVt' => $dispatchData['Visit_Type'] ?? 'N/A',
                 'tmpJob' => $dispatchData['Job'] ?? $deptSettings->Service_Single,
@@ -161,12 +161,12 @@ class NotificationService
             ->select('Dispatch_Chart.*', 'dl.name as Location_Name', 'db.name as Building_Name')
             ->get();
 
-        $formatDate = fn($date) => $date ? date('m/d/Y g:i a', strtotime($date)) : '';
-        $formatValDate = fn($date) => $date ? date('m/d/Y H:i:s', strtotime($date)) : '';
+        $formatDate = fn ($date) => $date ? date('m/d/Y g:i a', strtotime($date)) : '';
+        $formatValDate = fn ($date) => $date ? date('m/d/Y H:i:s', strtotime($date)) : '';
 
         return $records->map(function ($data) use ($dept_ID, $formatDate, $formatValDate) {
             $approvedBy = '';
-            if (!empty($data->Approved_by_Staff)) {
+            if (! empty($data->Approved_by_Staff)) {
                 [$approvedByFN, $approvedByLN] = Helper::getUserFirstLastName($dept_ID, $data->Approved_by_Staff);
                 $approvedBy = "$approvedByLN, $approvedByFN";
             }
@@ -207,5 +207,4 @@ class NotificationService
             ];
         })->toArray();
     }
-
 }
