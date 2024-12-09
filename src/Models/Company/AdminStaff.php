@@ -29,7 +29,7 @@ class AdminStaff extends Model
      */
     public function userAccount(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'Acc_ID', 'Acc_ID');
+        return $this->belongsTo(User::class, 'Acc_ID', 'GUID');
     }
 
     public function department(): BelongsTo

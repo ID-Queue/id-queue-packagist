@@ -3,6 +3,7 @@
 namespace IdQueue\IdQueuePackagist\Utils\Traits;
 
 use DB;
+use IdQueue\IdQueuePackagist\Models\Company\AdminServiceSetting;
 use IdQueue\IdQueuePackagist\Models\Company\ServiceHour;
 
 trait ServiceUtility
@@ -73,8 +74,7 @@ trait ServiceUtility
 
     public static function return_TotalPreschedTime($dept_ID): float|int
     {
-        $data = DB::table('Admin_Service_Settings')
-            ->where('Company_Dept_ID', $dept_ID)
+        $data = AdminServiceSetting::where('Company_Dept_ID', $dept_ID)
             ->first(['Pre_Schedual_Metric', 'Pre_Schedual_Num']); // Use `first` for a single result instead of `get`
 
         if ($data) {

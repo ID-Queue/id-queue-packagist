@@ -2,7 +2,13 @@
 
 namespace IdQueue\IdQueuePackagist\Models\Company;
 
+use Auth;
+use Carbon\Carbon;
+use IdQueue\IdQueuePackagist\Enums\RequestStatus;
 use IdQueue\IdQueuePackagist\Traits\CompanyDbConnection;
+use IdQueue\IdQueuePackagist\Utils\Helper;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -161,7 +167,7 @@ class ActiveQueue extends Model
 
     public static function returnIfDispatchedToStaff($staffGUID, $dept_ID): bool
     {
-        // Use Laravel's Query Builder to count dispatched items
+        // Use Laravel Query Builder to count dispatched items
         $count = self::join('Dispatch_Service as ds', 'Dispatch_Chart_Active_Queue.App_Service', '=', 'ds.Service_Name')
             ->where('Dispatch_Chart_Active_Queue.Company_Dept_ID', '=', $dept_ID)
             ->where(function ($query) {
@@ -178,5 +184,85 @@ class ActiveQueue extends Model
 
         // Return true if there are dispatched items, otherwise false
         return $count > 0;
+    }
+
+    /**
+     * Scope: Add dynamic service filters to the query.
+     *
+     * Applies filtering for specific services based on the user's admin type
+     * and associated service list.
+     *
+     * @param  Builder  $query  The query builder instance.
+     * @param  array  $userServices  List of services to filter by.
+     * @return Builder The modified query builder instance.
+     */
+    public function scopeFilterByUserServices(Builder $query, array $userServices): Builder
+    {
+
+        // Add filtering only if the user is not an 'Admin' and the service list is not empty
+        if (Auth::user()->Type_Of_Admin !== 'Admin' && ! empty($userServices)) {
+            $query->where(function ($subQuery) use ($userServices) {
+                foreach ($userServices as $service) {
+                    $subQuery->orWhere('App_Service', $service);
+                }
+            });
+        }
+
+        return $query;
+    }
+
+    /**
+     * Fetch active queue records with dynamic conditions.
+     *
+     * Retrieve records for a specific department, filtered by the user's associated
+     * services, and excludes completed or declined appointments.
+     *
+     * @param  int  $departmentId  The ID of the company department.
+     * @return Collection The resulting collection of records.
+     */
+    public static function fetchActiveQueue(int $departmentId, RequestStatus $status, bool $value = true): Collection
+    {
+        // Calculate the pre-scheduled time threshold for the department using Carbon
+        $preScheduledTimeThreshold = Helper::return_TotalPreschedTime($departmentId);
+        $preScheduledTime = Carbon::now()->addMinutes($preScheduledTimeThreshold);
+
+        // Retrieve the list of services associated with the current user
+        $userServices = Auth::user()->services()->pluck('Service')->toArray();
+
+        // Base query to avoid duplication
+        $query = self::query()
+            ->join('Dispatch_Service as ds', 'Dispatch_Chart_Active_Queue.App_Service', '=', 'ds.Service_Name') // Join with Dispatch_Service table
+            ->where('Dispatch_Chart_Active_Queue.Company_Dept_ID', $departmentId) // Specify the table explicitly
+            ->filterByUserServices($userServices) // Apply service-based filters
+            ->whereNull('Dispatch_Chart_Active_Queue.App_Done') // Specify the table explicitly
+            ->whereNull('Dispatch_Chart_Active_Queue.App_Declined') // Specify the table explicitly
+            ->where(function ($query) use ($preScheduledTime) {
+                // Include records with pre-schedule times <= the threshold or NULL
+                $query->where('Dispatch_Chart_Active_Queue.App_Pre_Schedual_Time', '<=', $preScheduledTime)
+                    ->orWhereNull('Dispatch_Chart_Active_Queue.App_Pre_Schedual_Time');
+            })
+            ->orderBy('Dispatch_Chart_Active_Queue.Priority', 'ASC') // Specify the table explicitly
+            ->orderByRaw('CONVERT(datetime, Dispatch_Chart_Active_Queue.Req_time, 101) ASC'); // Specify the table explicitly
+
+        // Apply the status condition based on whether it's pending or another status
+        if ($status->value === RequestStatus::App_Pending) {
+            return $query->where([
+                RequestStatus::App_Approved => null,
+                RequestStatus::App_Arrived => null,
+                RequestStatus::App_Dispatched => null,
+                RequestStatus::App_Session => null,
+                RequestStatus::App_Paused => null,
+            ])
+                ->get(); // Return query result for pending status
+        }
+
+        // For other statuses, apply the status value filter
+        return $query->where($status->value, $value)
+            ->get(); // Return query result for other statuses
+    }
+
+    public function lifeline(): HasMany
+    {
+        return $this->hasMany(DispatchChartDetails::class, 'Request_ID', 'ID');
     }
 }

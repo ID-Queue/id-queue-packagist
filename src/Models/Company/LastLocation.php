@@ -4,6 +4,7 @@ namespace IdQueue\IdQueuePackagist\Models\Company;
 
 use IdQueue\IdQueuePackagist\Traits\CompanyDbConnection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class LastLocation extends Model
 {
@@ -34,6 +35,21 @@ class LastLocation extends Model
         'App_Building_GUID' => 'string',
         'Location_Time' => 'string',
     ];
+
+    public function location(): HasOne
+    {
+        return $this->hasOne(DispatchLocation::class, 'Location_GUID', 'App_Location_GUID');
+    }
+
+    public function zone(): HasOne
+    {
+        return $this->hasOne(DispatchZone::class, 'Zone_GUID', 'App_Zone_GUID');
+    }
+
+    public function building(): HasOne
+    {
+        return $this->hasOne(DispatchBuilding::class, 'Building_GUID', 'App_Building_GUID');
+    }
 
     // You can define relationships here if necessary, e.g., belongsTo, hasMany, etc.
 }

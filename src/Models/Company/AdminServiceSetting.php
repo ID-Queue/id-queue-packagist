@@ -117,4 +117,15 @@ class AdminServiceSetting extends Model
             'timezone' => $this->Default_Time_Zone,
         ];
     }
+
+    public static function getSettingFor($settingName)
+    {
+        // Get the first record and return the value of the specified setting
+        $setting = self::get($settingName)->first();
+        if (isset($setting->{$settingName})) {
+            return $setting->{$settingName};
+        }
+
+        return false;
+    }
 }

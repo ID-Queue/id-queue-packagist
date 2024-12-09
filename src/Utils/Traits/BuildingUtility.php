@@ -2,7 +2,7 @@
 
 namespace IdQueue\IdQueuePackagist\Utils\Traits;
 
-use DB;
+use Illuminate\Support\Facades\DB;
 
 trait BuildingUtility
 {

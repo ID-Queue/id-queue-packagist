@@ -10,10 +10,12 @@ use IdQueue\IdQueuePackagist\Traits\CompanyDbConnection;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use LaravelIdea\Helper\IdQueue\IdQueuePackagist\Models\Company\_IH_User_C;
 
 class User extends Authenticatable
 {
@@ -94,11 +96,24 @@ class User extends Authenticatable
     }
 
     /**
+     * Define the relationship to AdminStaff.
+     */
+    public function services(): BelongsTo
+    {
+        return $this->belongsTo(AdminStaff::class, 'GUID', 'Acc_ID');
+    }
+
+    /**
      * Define a one-to-one relationship with StaffStation.
      */
-    public function staffStation(): HasOne
+    public function staffStation(): HasMany
     {
-        return $this->hasOne(StaffStation::class, 'Staff_GUID', 'GUID');
+        return $this->HasMany(StaffStation::class, 'Staff_GUID', 'GUID');
+    }
+
+    public function lastLocation(): HasOne
+    {
+        return $this->hasOne(LastLocation::class, 'Staff_GUID', 'GUID');
     }
 
     /**
@@ -150,6 +165,7 @@ class User extends Authenticatable
             3 => UserStatus::Arrived, // SW
             2 => UserStatus::Accepted, // Thumbs
         ];
+
         // Return the mapped status or default to the current staff login state
         return $statusMapping[$currentStatus] ?? $this->Staff_Login_State; // Default to current state if no match
     }
@@ -157,10 +173,14 @@ class User extends Authenticatable
     /**
      * Get users by status, but apply the logic of the getStatus method.
      */
-    public static function getUsersByStatus(UserStatus $status)
+    public static function getUsersByStatus(UserStatus $status): Collection|_IH_User_C|array
     {
         // Get all users that could match the status.
         $users = self::all();
+
+        if ($status->value === UserStatus::Stationed()->value) {
+            return self::where(['isStationed' => true, 'Staff_Login_State' => 1])->get();
+        }
 
         // Filter users using the getStatus logic.
         return $users->filter(function ($user) use ($status) {
@@ -181,5 +201,4 @@ class User extends Authenticatable
             return in_array($user->getStatus(), $statuses);
         });
     }
-
 }

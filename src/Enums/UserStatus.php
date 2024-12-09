@@ -14,6 +14,7 @@ use BenSampo\Enum\Enum;
  * @method static static Arrived()
  * @method static static Accepted()
  * @method static static CheckOut()
+ * @method static static Stationed()
  */
 final class UserStatus extends Enum
 {
@@ -35,6 +36,8 @@ final class UserStatus extends Enum
 
     const CheckOut = 8;
 
+    const Stationed = 9;
+
     /**
      * Get the image name associated with the status.
      */
@@ -50,6 +53,7 @@ final class UserStatus extends Enum
             self::Arrived => 'sw.png',
             self::Accepted => 'thumbs.png',
             self::CheckOut => 'out.png',
+            self::Stationed => 'stationed.png',
         };
     }
 
@@ -68,6 +72,7 @@ final class UserStatus extends Enum
             self::Arrived => 'Arrived',
             self::Accepted => 'Accepted',
             self::CheckOut => 'Check out',
+            self::Stationed => 'Stationed',
         };
     }
 }
