@@ -100,7 +100,7 @@ class NotificationService
             'subject' => $subject,
             'msg' => 'This is a follow-up message.',
             'details' => [
-                'hdr' => "ID-Queue Info: Request Follow-up for #$idVal",
+                'hdr' => "ID-Queue Info: Request for #$idVal",
                 'bdy' => 'We are pleased to inform you that your request was successfully submitted.',
                 'tmpID' => $dispatchData['ID'],
                 'tmpReqTime' => $dispatchData['Req_Time'] ?? 'N/A',
@@ -129,6 +129,7 @@ class NotificationService
         ];
 
         $emailResponse = $this->mailService->sendEmailRequest($emailRequestData);
+
 
         if ($emailResponse['status'] === 'success') {
             return [

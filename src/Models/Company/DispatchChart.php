@@ -63,6 +63,7 @@ class DispatchChart extends Model
         'Done_Time',
         'Declined_Time',
         'Dispatched_Time',
+        'Dispatch_Notes'
     ];
 
     protected $casts = [
@@ -79,6 +80,20 @@ class DispatchChart extends Model
         'App_Visit_Type_ID' => 'integer',
         'Req_DoximityNo' => 'integer',
     ];
+
+    /**
+     * Set the Dispatch_Notes attribute.
+     *
+     * @param string $value
+     * @return void
+     */
+    public function setDispatchNotesAttribute(string $value): void
+    {
+        // Modify the dispatch note, for example, trimming the whitespace
+        // and encoding the text before saving
+        $this->attributes['Dispatch_Notes'] = trim($value); // Add your custom logic here
+    }
+
 
     public function department(): BelongsTo
     {

@@ -75,10 +75,9 @@ trait UserInfo
         return $pass;
     }
 
-    public static function returnDisplayNameFromGUID($strGUID, $dept_ID)
+    public static function returnDisplayNameFromGUID($strGUID, $dept_ID): ?string
     {
-        $user = DB::table('User_Accounts')
-            ->where('Company_Dept_ID', $dept_ID)
+        $user = User::where('Company_Dept_ID', $dept_ID)
             ->where('GUID', $strGUID)
             ->first(['First_name', 'Last_name']); // Use `first()` for single record retrieval
 

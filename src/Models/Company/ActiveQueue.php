@@ -85,6 +85,19 @@ class ActiveQueue extends Model
         'Dispatch_Notes',
     ];
 
+    /**
+     * Set the Dispatch_Notes attribute.
+     *
+     * @param string $value
+     * @return void
+     */
+    public function setDispatchNotesAttribute(string $value): void
+    {
+        // Modify the dispatch note, for example, trimming the whitespace
+        // and encoding the text before saving
+        $this->attributes['Dispatch_Notes'] = trim($value); // Add your custom logic here
+    }
+
     public function department(): BelongsTo
     {
         return $this->belongsTo(DispatchDepartment::class, 'Company_Dept_ID', 'ID');

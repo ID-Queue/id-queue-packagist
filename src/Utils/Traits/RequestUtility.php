@@ -3,6 +3,7 @@
 namespace IdQueue\IdQueuePackagist\Utils\Traits;
 
 use DB;
+use IdQueue\IdQueuePackagist\Models\Company\DispatchChartDetails;
 use IdQueue\IdQueuePackagist\Models\Company\ServiceHour;
 
 trait RequestUtility
@@ -87,7 +88,7 @@ trait RequestUtility
         ];
 
         // Use insertOrIgnore to avoid duplicate errors (if applicable)
-        DB::table('Dispatch_Chart_Details')->insert($values);
+        DispatchChartDetails::create($values);
     }
 
     public static function customPagination($object, $request): array
