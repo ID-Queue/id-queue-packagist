@@ -39,4 +39,11 @@ class CC2DB extends Model
         'notification_alert' => 'boolean',
         'is_doximity' => 'boolean',
     ];
+
+    public function getConfigValue($key)
+    {
+        $config = $this->config_val; // This will already be an array due to casting
+
+        return $config[$key] ?? null; // Return the value or null if not found
+    }
 }

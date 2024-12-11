@@ -63,7 +63,7 @@ class DispatchChart extends Model
         'Done_Time',
         'Declined_Time',
         'Dispatched_Time',
-        'Dispatch_Notes'
+        'Dispatch_Notes',
     ];
 
     protected $casts = [
@@ -83,9 +83,6 @@ class DispatchChart extends Model
 
     /**
      * Set the Dispatch_Notes attribute.
-     *
-     * @param string $value
-     * @return void
      */
     public function setDispatchNotesAttribute(string $value): void
     {
@@ -93,7 +90,6 @@ class DispatchChart extends Model
         // and encoding the text before saving
         $this->attributes['Dispatch_Notes'] = trim($value); // Add your custom logic here
     }
-
 
     public function department(): BelongsTo
     {

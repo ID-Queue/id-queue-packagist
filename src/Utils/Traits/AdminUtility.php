@@ -11,7 +11,7 @@ trait AdminUtility
     public static function getAdditionalAdminValue(int $dept_ID): array
     {
         $data = AdminServiceSetting::where('Company_Dept_ID', $dept_ID)
-            ->pluck(
+            ->select([
                 'Enable_Pre_Schedual', 'Enable_Life_Threat', 'Enable_FN_LN',
                 'Enable_Second_Person_ID', 'Enable_Gender_Pref', 'App_Location_Show',
                 'App_Location_Detail_Show', 'App_Zone_Show', 'App_Building_Show',
@@ -22,8 +22,8 @@ trait AdminUtility
                 'Pre_Schedual_Metric', 'Pre_Schedual_Num', 'Enable_Comp_Sign',
                 'Enable_Req_If_Staff_Online', 'Msg_If_Staff_Off_Line',
                 'Enable_Ext_Queue', 'Enable_Dispatch', 'Presched_Time_Interval',
-                'Default_Time_Zone'
-            )
+                'Default_Time_Zone',
+            ])
             ->first();
 
         return $data ? $data->toArray() : [];

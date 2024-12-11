@@ -87,9 +87,6 @@ class ActiveQueue extends Model
 
     /**
      * Set the Dispatch_Notes attribute.
-     *
-     * @param string $value
-     * @return void
      */
     public function setDispatchNotesAttribute(string $value): void
     {

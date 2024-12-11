@@ -2,7 +2,6 @@
 
 namespace IdQueue\IdQueuePackagist\Utils\Traits;
 
-use DB;
 use Exception;
 use IdQueue\IdQueuePackagist\Models\Company\DeptPreSetting;
 use IdQueue\IdQueuePackagist\Models\Company\User;

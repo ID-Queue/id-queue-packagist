@@ -130,7 +130,6 @@ class NotificationService
 
         $emailResponse = $this->mailService->sendEmailRequest($emailRequestData);
 
-
         if ($emailResponse['status'] === 'success') {
             return [
                 'status' => 'success',
