@@ -135,7 +135,7 @@ class User extends Authenticatable
     /**
      * Get the current status of the staff member based on conditions.
      */
-    public function getStatus()
+    public function getStatus(): int
     {
         if ((int) $this->Staff_Login_State === 1) {
             return UserStatus::Available;
@@ -151,7 +151,7 @@ class User extends Authenticatable
             return UserStatus::Dispatched;
         }
 
-        return $this->Staff_Login_State;
+        return UserStatus::LoggedOut;
     }
 
     /**

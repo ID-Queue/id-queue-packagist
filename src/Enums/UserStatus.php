@@ -38,6 +38,8 @@ final class UserStatus extends Enum
 
     const Stationed = 9;
 
+    const LoggedOut = 9;
+
     /**
      * Get the image name associated with the status.
      */
