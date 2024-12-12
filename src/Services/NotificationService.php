@@ -4,6 +4,7 @@ namespace IdQueue\IdQueuePackagist\Services;
 
 use IdQueue\IdQueuePackagist\Models\Company\DeptPreSetting;
 use IdQueue\IdQueuePackagist\Models\Company\DispatchChart;
+use IdQueue\IdQueuePackagist\Models\Company\DispatchZone;
 use IdQueue\IdQueuePackagist\Models\Company\User;
 use IdQueue\IdQueuePackagist\Utils\Helper;
 use Log;
@@ -93,8 +94,12 @@ class NotificationService
 
         // Get department values
         $deptSettings = DeptPreSetting::where('Company_Dept_ID', $deptId)
-            ->select('Service_Single', 'Staff_Single', 'Location_Single', 'Building_Single', 'Person_ID')
+            ->select('Service_Single', 'Staff_Single', 'Location_Single', 'Building_Single', 'Person_ID', 'Zone_Single')
             ->first();
+        //App_Zone_GUID
+        $zone = DispatchChart::where('ID' , $dispatchData['ID'])->first()->dispatchZone;
+
+
         $emailRequestData = [
             'to' => $dispatchData['Req_EMail'] ?? 'default-email@example.com',
             'subject' => $subject,
@@ -107,6 +112,8 @@ class NotificationService
                 'tmpBld' => $dispatchData['Building_Name'] ?? $deptSettings->Building_Single,
                 'tmpLoc' => $dispatchData['Location_Name'] ?? $deptSettings->Location_Single,
                 'buildingSingle' => $deptSettings->Building_Single,
+                'zone' => $deptSettings->Zone_Single,
+                'zoneValue' => ($zone)? $zone->name : 'N/A',
                 'locationSingle' => $deptSettings->Location_Single,
                 'personID' => $deptSettings->Person_ID,
                 'tmpPatMRN' => $dispatchData['Pat_MRN'] ?? 'N/A',
