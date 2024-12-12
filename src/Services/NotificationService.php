@@ -106,6 +106,7 @@ class NotificationService
                 'tmpReqTime' => $dispatchData['Req_Time'] ?? 'N/A',
                 'tmpBld' => $dispatchData['Building_Name'] ?? $deptSettings->Building_Single,
                 'tmpLoc' => $dispatchData['Location_Name'] ?? $deptSettings->Location_Single,
+                'buildingSingle' => $deptSettings->Building_Single,
                 'locationSingle' => $deptSettings->Location_Single,
                 'personID' => $deptSettings->Person_ID,
                 'tmpPatMRN' => $dispatchData['Pat_MRN'] ?? 'N/A',
