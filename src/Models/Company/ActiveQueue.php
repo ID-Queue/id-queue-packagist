@@ -232,29 +232,40 @@ class ActiveQueue extends Model
      */
     public static function fetchActiveQueue(int $departmentId, RequestStatus $status, bool $value = true): Collection
     {
-        // Calculate the pre-scheduled time threshold for the department using Carbon
+        // Calculate the pre-scheduled time threshold for the department
         $preScheduledTimeThreshold = Helper::return_TotalPreschedTime($departmentId);
         $preScheduledTime = Carbon::now()->addMinutes($preScheduledTimeThreshold);
 
-        // Retrieve the list of services associated with the current user
-        $userServices = Auth::user()->services()->pluck('Service')->toArray();
+        // Retrieve the current user's services
+        $userServices = Auth::user()->services()->pluck('Service');
 
-        // Base query to avoid duplication
+        // Base query for active queue
         $query = self::query()
-            ->join('Dispatch_Service as ds', 'Dispatch_Chart_Active_Queue.App_Service', '=', 'ds.Service_Name') // Join with Dispatch_Service table
-            ->where('Dispatch_Chart_Active_Queue.Company_Dept_ID', $departmentId) // Specify the table explicitly
-            ->filterByUserServices($userServices) // Apply service-based filters
-            ->whereNull('Dispatch_Chart_Active_Queue.App_Done') // Specify the table explicitly
-            ->whereNull('Dispatch_Chart_Active_Queue.App_Declined') // Specify the table explicitly
-            ->where(function ($query) use ($preScheduledTime) {
-                // Include records with pre-schedule times <= the threshold or NULL
-                $query->where('Dispatch_Chart_Active_Queue.App_Pre_Schedual_Time', '<=', $preScheduledTime)
-                    ->orWhereNull('Dispatch_Chart_Active_Queue.App_Pre_Schedual_Time');
-            })
-            ->orderBy('Dispatch_Chart_Active_Queue.Priority', 'ASC') // Specify the table explicitly
-            ->orderByRaw('CONVERT(datetime, Dispatch_Chart_Active_Queue.Req_time, 101) ASC'); // Specify the table explicitly
+            ->join('Dispatch_Service as ds', 'Dispatch_Chart_Active_Queue.App_Service', '=', 'ds.Service_Name')
+            ->where('Dispatch_Chart_Active_Queue.Company_Dept_ID', $departmentId)
+            ->filterByUserServices($userServices) // Assuming this is a scope
+            ->whereNull('Dispatch_Chart_Active_Queue.App_Done')
+            ->whereNull('Dispatch_Chart_Active_Queue.App_Declined');
 
-        // Apply the status condition based on whether it's pending or another status
+        // Exclude paused applications unless status is specifically paused
+        if ($status->value !== RequestStatus::App_Paused) {
+            $query->where(function ($query) {
+                $query->where('Dispatch_Chart_Active_Queue.App_Paused', false)
+                    ->orWhereNull('Dispatch_Chart_Active_Queue.App_Paused');
+            });
+        }
+
+        // Apply pre-scheduled time condition
+        $query->where(function ($query) use ($preScheduledTime) {
+            $query->where('Dispatch_Chart_Active_Queue.App_Pre_Schedual_Time', '<=', $preScheduledTime)
+                ->orWhereNull('Dispatch_Chart_Active_Queue.App_Pre_Schedual_Time');
+        });
+
+        // Order by priority and request time
+        $query->orderBy('Dispatch_Chart_Active_Queue.Priority', 'ASC')
+            ->orderByRaw('CONVERT(datetime, Dispatch_Chart_Active_Queue.Req_time, 101) ASC');
+
+        // Apply status-specific filters
         if ($status->value === RequestStatus::App_Pending) {
             return $query->where([
                 RequestStatus::App_Approved => null,
@@ -262,13 +273,10 @@ class ActiveQueue extends Model
                 RequestStatus::App_Dispatched => null,
                 RequestStatus::App_Session => null,
                 RequestStatus::App_Paused => null,
-            ])
-                ->get(); // Return query result for pending status
+            ])->get();
         }
 
-        // For other statuses, apply the status value filter
-        return $query->where($status->value, $value)
-            ->get(); // Return query result for other statuses
+        return $query->where($status->value, $value)->get();
     }
 
     public function lifeline(): HasMany
