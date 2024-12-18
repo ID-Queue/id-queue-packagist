@@ -7,7 +7,6 @@ use IdQueue\IdQueuePackagist\Services\ConnectionService;
 use IdQueue\IdQueuePackagist\Utils\Helper;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 
 class AuthServices
 {
