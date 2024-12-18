@@ -252,6 +252,12 @@ class ActiveQueue extends Model
                         ->orWhereNull('Dispatch_Chart_Active_Queue.App_Paused');
                 });
             }
+            if($status->value === RequestStatus::App_Dispatched) {
+                $query =  $query->where(function ($query) {
+                    $query->where('Dispatch_Chart_Active_Queue.App_Dispatched', false)
+                        ->orWhereNull('Dispatch_Chart_Active_Queue.App_Dispatched');
+                });
+            }
             $query = $query->where(function ($query) use ($preScheduledTime) {
                 // Include records with pre-schedule times <= the threshold or NULL
                 $query->where('Dispatch_Chart_Active_Queue.App_Pre_Schedual_Time', '<=', $preScheduledTime)
