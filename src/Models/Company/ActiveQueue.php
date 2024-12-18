@@ -108,7 +108,7 @@ class ActiveQueue extends Model
 
     public function service(): BelongsTo
     {
-        return $this->belongsTo(DispatchService::class, 'App_Service', 'Service_Name');
+        return $this->belongsTo(DispatchService::class, 'App_Service', 'Service_GUID');
     }
 
     public function dispatchBuilding(): BelongsTo
