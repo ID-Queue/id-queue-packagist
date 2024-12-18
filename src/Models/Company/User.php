@@ -137,9 +137,6 @@ class User extends Authenticatable
      */
     public function getStatus(): int
     {
-        if ((int) $this->Staff_Login_State === 1) {
-            return UserStatus::Available;
-        }
 
         $currentStatus = ActiveQueue::returnStaffCurrentStatus($this->GUID, $this->Company_Dept_ID);
 
@@ -149,6 +146,9 @@ class User extends Authenticatable
 
         if (ActiveQueue::returnIfDispatchedToStaff($this->GUID, $this->Company_Dept_ID)) {
             return UserStatus::Dispatched;
+        }
+        if ((int) $this->Staff_Login_State === 1) {
+            return UserStatus::Available;
         }
 
         return UserStatus::LoggedOut;
