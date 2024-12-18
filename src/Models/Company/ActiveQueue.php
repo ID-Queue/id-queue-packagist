@@ -254,8 +254,8 @@ class ActiveQueue extends Model
             }
             if($status->value === RequestStatus::App_Dispatched) {
                 $query =  $query->where(function ($query) {
-                    $query->where('Dispatch_Chart_Active_Queue.App_Dispatched', false)
-                        ->orWhereNull('Dispatch_Chart_Active_Queue.App_Dispatched');
+                    $query->where('Dispatch_Chart_Active_Queue.App_Approved', false)
+                        ->orWhereNull('Dispatch_Chart_Active_Queue.App_Approved');
                 });
             }
             $query = $query->where(function ($query) use ($preScheduledTime) {
