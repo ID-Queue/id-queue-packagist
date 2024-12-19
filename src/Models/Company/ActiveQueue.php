@@ -108,7 +108,7 @@ class ActiveQueue extends Model
 
     public function service(): BelongsTo
     {
-        return $this->belongsTo(DispatchService::class, 'App_Service', 'Service_GUID');
+        return $this->belongsTo(DispatchService::class, 'App_Service', 'Service_Name');
     }
 
     public function dispatchBuilding(): BelongsTo
@@ -126,10 +126,10 @@ class ActiveQueue extends Model
         return $this->belongsTo(DispatchService::class, 'App_Service_GUID');
     }
 
-    public function dispatchService(): HasMany
-    {
-        return $this->hasMany(DispatchService::class, 'Service_Name');
-    }
+//    public function dispatchService(): HasMany
+//    {
+//        return $this->hasMany(DispatchService::class, 'Service_Name');
+//    }
 
     public function userAccount(): BelongsTo
     {
