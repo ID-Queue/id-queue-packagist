@@ -27,6 +27,7 @@ class User extends Authenticatable
     const SUPER_ADMIN = 'superadmin';
 
     protected $table = 'User_Accounts';
+    public $timestamps = false;  // Explicitly set this to false
 
     /**
      * Define casts for datetime attributes.
