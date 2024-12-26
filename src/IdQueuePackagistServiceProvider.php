@@ -11,7 +11,7 @@ class IdQueuePackagistServiceProvider extends ServiceProvider
     /**
      * Register any application services.
      */
-    public function register()
+    public function register(): void
     {
         // Bind the singleton for ModelLister
         $this->app->singleton(ModelLister::class, function ($app) {
@@ -29,8 +29,16 @@ class IdQueuePackagistServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-    public function boot()
+    public function boot(): void
     {
+        // Set the timezone globally for Laravel and PHP
+        $timezone = 'America/New_York'; // EST timezone
+
+        // Update Laravel configuration
+        config(['app.timezone' => $timezone]);
+
+        // Set PHP's default timezone
+        date_default_timezone_set($timezone);
         // Load package migrations
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
