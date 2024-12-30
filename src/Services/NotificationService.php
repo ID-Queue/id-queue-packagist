@@ -151,6 +151,24 @@ class NotificationService
         ];
     }
 
+    public function forgotPassword($forgotPassword): array
+    {
+        $emailResponse = $this->mailService->forgotPassword($forgotPassword);
+
+        if ($emailResponse['status'] === 'success') {
+            return [
+                'status' => 'success',
+                'message' => 'Email notification sent successfully.',
+            ];
+        }
+
+        return [
+            'status' => 'error',
+            'message' => 'Failed to send email notification.',
+            'details' => $emailResponse['error'] ?? 'Unknown error occurred.',
+        ];
+    }
+
     /**
      * Get Dispatch Chart Data and Format Results
      *
@@ -215,4 +233,6 @@ class NotificationService
             ];
         })->toArray();
     }
+
+
 }

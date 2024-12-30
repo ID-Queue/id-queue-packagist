@@ -10,6 +10,7 @@ use IdQueue\IdQueuePackagist\Traits\CompanyDbConnection;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -26,6 +27,7 @@ class User extends Authenticatable
     const SUPER_ADMIN = 'superadmin';
 
     protected $table = 'User_Accounts';
+    public $timestamps = false;  // Explicitly set this to false
 
     /**
      * Define casts for datetime attributes.
@@ -98,9 +100,14 @@ class User extends Authenticatable
     /**
      * Define the relationship to AdminStaff.
      */
-    public function services(): BelongsTo
+    public function adminStaff(): BelongsTo
     {
         return $this->belongsTo(AdminStaff::class, 'GUID', 'Acc_ID');
+    }
+
+    public function services(): HasMany
+    {
+        return $this->hasMany(DispatchStaff::class, 'Acc_GUID', 'GUID');
     }
 
     /**
@@ -137,9 +144,6 @@ class User extends Authenticatable
      */
     public function getStatus(): int
     {
-        if ((int) $this->Staff_Login_State === 1) {
-            return UserStatus::Available;
-        }
 
         $currentStatus = ActiveQueue::returnStaffCurrentStatus($this->GUID, $this->Company_Dept_ID);
 
@@ -149,6 +153,9 @@ class User extends Authenticatable
 
         if (ActiveQueue::returnIfDispatchedToStaff($this->GUID, $this->Company_Dept_ID)) {
             return UserStatus::Dispatched;
+        }
+        if ((int) $this->Staff_Login_State === 1) {
+            return UserStatus::Available;
         }
 
         return UserStatus::LoggedOut;
