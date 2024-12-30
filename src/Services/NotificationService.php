@@ -82,6 +82,7 @@ class NotificationService
     {
         $dispatchDataArray = $this->getDispatchChartData($deptId, $idVal);
 
+
         if (empty($dispatchDataArray) || ! isset($dispatchDataArray[0])) {
             return [
                 'status' => 'error',
@@ -172,8 +173,9 @@ class NotificationService
 
         return $records->map(function ($data) use ($dept_ID, $formatDate, $formatValDate) {
             $approvedBy = '';
-            if (! empty($data->Approved_by_Staff)) {
-                [$approvedByFN, $approvedByLN] = Helper::getUserFirstLastName($dept_ID, $data->Approved_by_Staff);
+
+            if (! empty($data->Staff_GUID)) {
+                [$approvedByFN, $approvedByLN] = Helper::getUserFirstLastNameByGUID($dept_ID, $data->Staff_GUID);
                 $approvedBy = "$approvedByLN, $approvedByFN";
             }
 

@@ -21,6 +21,15 @@ trait UserInfo
         return $user ? [$user->First_name, $user->Last_name] : false;
     }
 
+    public static function getUserFirstLastNameByGUID(int $deptId, string $guid): array|false
+    {
+        $user = User::where('Company_Dept_ID', $deptId)
+            ->where('GUID', $guid)
+            ->select(['First_name', 'Last_name'])
+            ->first();
+
+        return $user ? [$user->getAttribute('First_name'), $user->getAttribute('Last_name')] : false;
+    }
     /**
      * Get department values for a given department ID.
      */
