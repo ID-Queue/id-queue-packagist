@@ -19,7 +19,7 @@ class TraceRequests
                 ->setAttribute('http.url', $request->fullUrl())
                 ->setAttribute('http.user_agent', $request->header('User-Agent'))
                 ->setAttribute('http.headers', json_encode($request->headers->all()))
-                ->setAttribute('http.body', $request->getContent());
+                ->setAttribute('http.body',  json_encode($request->all()));
 
             $response = $next($request);
 
