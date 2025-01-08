@@ -13,8 +13,11 @@ use BenSampo\Enum\Enum;
 final class RequestPriority extends Enum
 {
     const Low = 1;
+
     const Medium = 2;
+
     const High = 3;
+
     const Critical = 4;
 
     /**

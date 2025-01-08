@@ -82,7 +82,6 @@ class NotificationService
     {
         $dispatchDataArray = $this->getDispatchChartData($deptId, $idVal);
 
-
         if (empty($dispatchDataArray) || ! isset($dispatchDataArray[0])) {
             return [
                 'status' => 'error',
@@ -233,6 +232,4 @@ class NotificationService
             ];
         })->toArray();
     }
-
-
 }

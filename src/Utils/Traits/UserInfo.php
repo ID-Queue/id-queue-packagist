@@ -30,6 +30,7 @@ trait UserInfo
 
         return $user ? [$user->getAttribute('First_name'), $user->getAttribute('Last_name')] : false;
     }
+
     /**
      * Get department values for a given department ID.
      */

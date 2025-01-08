@@ -3,6 +3,7 @@
 namespace IdQueue\IdQueuePackagist\Http\Middleware;
 
 use Closure;
+use Exception;
 use IdQueue\IdQueuePackagist\Enums\AppSettings;
 use IdQueue\IdQueuePackagist\Models\Company\AdminServiceSetting;
 use IdQueue\IdQueuePackagist\Services\ConnectionService;
@@ -10,16 +11,14 @@ use IdQueue\IdQueuePackagist\Utils\Helper;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Exception;
 
 class AuthServices
 {
     /**
      * Handle an incoming request.
      *
-     * @param Request $request
-     * @param Closure $next
      * @return mixed
+     *
      * @throws Exception
      */
     public function handle(Request $request, Closure $next)
@@ -58,7 +57,7 @@ class AuthServices
             // Retrieve and set the application's timezone
             $timeZone = AdminServiceSetting::getSettingFor(AppSettings::Default_Time_Zone);
 
-            if (!$timeZone) {
+            if (! $timeZone) {
                 throw new Exception('Unable to fetch the default timezone setting.');
             }
 
@@ -66,7 +65,7 @@ class AuthServices
             date_default_timezone_set($timeZone);
 
             // Merge user details into the request object and authenticate
-            $request->merge((array)$user);
+            $request->merge((array) $user);
             Auth::loginUsingId($user->id);
 
             return $next($request);
@@ -78,9 +77,6 @@ class AuthServices
 
     /**
      * Return a standardized error response.
-     *
-     * @param string $message
-     * @return JsonResponse
      */
     private function errorResponse(string $message): JsonResponse
     {

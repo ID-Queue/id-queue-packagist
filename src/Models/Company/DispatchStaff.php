@@ -33,6 +33,6 @@ class DispatchStaff extends Model
     public function userAccount(): BelongsTo
     {
         // Assuming there's a 'User_Account' model with 'Acc_GUID' as the foreign key
-        return $this->belongsTo(User::class, 'Acc_GUID','GUID');
+        return $this->belongsTo(User::class, 'Acc_GUID', 'GUID');
     }
 }
