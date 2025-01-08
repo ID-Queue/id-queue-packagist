@@ -126,10 +126,10 @@ class ActiveQueue extends Model
         return $this->belongsTo(DispatchService::class, 'App_Service_GUID');
     }
 
-    public function dispatchService(): HasMany
-    {
-        return $this->hasMany(DispatchService::class, 'Service_Name');
-    }
+    //    public function dispatchService(): HasMany
+    //    {
+    //        return $this->hasMany(DispatchService::class, 'Service_Name');
+    //    }
 
     public function userAccount(): BelongsTo
     {
@@ -246,35 +246,35 @@ class ActiveQueue extends Model
             ->filterByUserServices($userServices) // Apply service-based filters
             ->whereNull('Dispatch_Chart_Active_Queue.App_Done') // Specify the table explicitly
             ->whereNull('Dispatch_Chart_Active_Queue.App_Declined'); // Specify the table explicitly
-            if($status->value !== RequestStatus::App_Paused) {
-                $query =  $query->where(function ($query) {
-                    $query->where('Dispatch_Chart_Active_Queue.App_Paused', false)
-                        ->orWhereNull('Dispatch_Chart_Active_Queue.App_Paused');
-                });
-            }
-            if($status->value === RequestStatus::App_Dispatched) {
-                $query =  $query->where(function ($query) {
-                    $query->where('Dispatch_Chart_Active_Queue.App_Approved', false)
-                        ->orWhereNull('Dispatch_Chart_Active_Queue.App_Approved');
-                });
-            }
-            if($status->value === RequestStatus::App_Approved) {
-                $query =  $query->where(function ($query) {
-                    $query->where('Dispatch_Chart_Active_Queue.App_Arrived', false)
-                        ->orWhereNull('Dispatch_Chart_Active_Queue.App_Arrived');
-                });
-            }
-            if($status->value === RequestStatus::App_Arrived) {
-                $query =  $query->where(function ($query) {
-                    $query->where('Dispatch_Chart_Active_Queue.App_Session', false)
-                        ->orWhereNull('Dispatch_Chart_Active_Queue.App_Session');
-                });
-            }
-            $query = $query->where(function ($query) use ($preScheduledTime) {
-                // Include records with pre-schedule times <= the threshold or NULL
-                $query->where('Dispatch_Chart_Active_Queue.App_Pre_Schedual_Time', '<=', $preScheduledTime)
-                    ->orWhereNull('Dispatch_Chart_Active_Queue.App_Pre_Schedual_Time');
-            })
+        if ($status->value !== RequestStatus::App_Paused) {
+            $query = $query->where(function ($query) {
+                $query->where('Dispatch_Chart_Active_Queue.App_Paused', false)
+                    ->orWhereNull('Dispatch_Chart_Active_Queue.App_Paused');
+            });
+        }
+        if ($status->value === RequestStatus::App_Dispatched) {
+            $query = $query->where(function ($query) {
+                $query->where('Dispatch_Chart_Active_Queue.App_Approved', false)
+                    ->orWhereNull('Dispatch_Chart_Active_Queue.App_Approved');
+            });
+        }
+        if ($status->value === RequestStatus::App_Approved) {
+            $query = $query->where(function ($query) {
+                $query->where('Dispatch_Chart_Active_Queue.App_Arrived', false)
+                    ->orWhereNull('Dispatch_Chart_Active_Queue.App_Arrived');
+            });
+        }
+        if ($status->value === RequestStatus::App_Arrived) {
+            $query = $query->where(function ($query) {
+                $query->where('Dispatch_Chart_Active_Queue.App_Session', false)
+                    ->orWhereNull('Dispatch_Chart_Active_Queue.App_Session');
+            });
+        }
+        $query = $query->where(function ($query) use ($preScheduledTime) {
+            // Include records with pre-schedule times <= the threshold or NULL
+            $query->where('Dispatch_Chart_Active_Queue.App_Pre_Schedual_Time', '<=', $preScheduledTime)
+                ->orWhereNull('Dispatch_Chart_Active_Queue.App_Pre_Schedual_Time');
+        })
             ->orderBy('Dispatch_Chart_Active_Queue.Priority', 'ASC') // Specify the table explicitly
             ->orderByRaw('CONVERT(datetime, Dispatch_Chart_Active_Queue.Req_time, 101) ASC'); // Specify the table explicitly
 

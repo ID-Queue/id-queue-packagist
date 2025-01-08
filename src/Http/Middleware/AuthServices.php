@@ -3,53 +3,76 @@
 namespace IdQueue\IdQueuePackagist\Http\Middleware;
 
 use Closure;
+use Exception;
+use IdQueue\IdQueuePackagist\Enums\AppSettings;
+use IdQueue\IdQueuePackagist\Models\Company\AdminServiceSetting;
 use IdQueue\IdQueuePackagist\Services\ConnectionService;
 use IdQueue\IdQueuePackagist\Utils\Helper;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class AuthServices
 {
     /**
      * Handle an incoming request.
      *
-     * @return JsonResponse
+     * @return mixed
+     *
+     * @throws Exception
      */
     public function handle(Request $request, Closure $next)
     {
-        $bearer = $request->header('Authorization');
+        try {
+            // Retrieve the Authorization header
+            $bearer = $request->header('Authorization');
 
-        // Check for authorization token
-        if (empty($bearer)) {
-            return $this->errorResponse('Authorization token is required!');
+            if (empty($bearer)) {
+                throw new Exception('Authorization token is required!');
+            }
+
+            // Extract JWT from Bearer token
+            $jwt = str_replace('Bearer ', '', $bearer);
+
+            if (empty($jwt)) {
+                throw new Exception('Auth token is invalid!');
+            }
+
+            // Validate the JWT token
+            $jwtData = Helper::isJwtValid($jwt);
+            if (empty($jwtData['check']) || empty($jwtData['details'])) {
+                throw new Exception('Token has expired or is invalid!');
+            }
+
+            $user = json_decode($jwtData['details']);
+
+            // Ensure necessary user details are present
+            if (empty($user->Company_DB) || empty($user->id)) {
+                throw new Exception('Auth token is invalid!');
+            }
+
+            // Establish database connection for the user
+            ConnectionService::setConnection($user);
+
+            // Retrieve and set the application's timezone
+            $timeZone = AdminServiceSetting::getSettingFor(AppSettings::Default_Time_Zone);
+
+            if (! $timeZone) {
+                throw new Exception('Unable to fetch the default timezone setting.');
+            }
+
+            config(['app.timezone' => $timeZone]);
+            date_default_timezone_set($timeZone);
+
+            // Merge user details into the request object and authenticate
+            $request->merge((array) $user);
+            Auth::loginUsingId($user->id);
+
+            return $next($request);
+        } catch (Exception $e) {
+            // Handle exceptions and return a JSON error response
+            return $this->errorResponse($e->getMessage());
         }
-
-        $jwt = str_replace('Bearer ', '', $bearer);
-
-        // Validate JWT format
-        if (empty($jwt)) {
-            return $this->errorResponse('Auth token is invalid!');
-        }
-
-        // Validate JWT data
-        $jwtData = Helper::isJwtValid($jwt);
-        if (empty($jwtData['check']) || empty($jwtData['details'])) {
-            return $this->errorResponse('Token has expired or is invalid!');
-        }
-
-        $user = json_decode($jwtData['details']);
-
-        // Validate user data
-        if (empty($user->Company_DB) || empty($user->id)) {
-            return $this->errorResponse('Auth token is invalid!');
-        }
-
-        // Set connection and authenticate user
-        ConnectionService::setConnection($user);
-        $request->merge((array) $user);
-        auth()->loginUsingId($user->id);
-
-        return $next($request);
     }
 
     /**
@@ -60,6 +83,6 @@ class AuthServices
         return response()->json([
             'status' => 'error',
             'message' => $message,
-        ]);
+        ], 400);
     }
 }

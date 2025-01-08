@@ -16,7 +16,14 @@
     "require": {
         "php": "^8.0",
         "illuminate/support": "^8.0 || ^9.0 || ^10.0 || ^11.0",
-        "bensampo/laravel-enum": "^4.0|^6.11"
+        "bensampo/laravel-enum": "^4.0|^6.11",
+        "open-telemetry/api": "^1.1",
+        "open-telemetry/context": "^1.1",
+        "open-telemetry/exporter-otlp": "^1.1",
+        "open-telemetry/opentelemetry": "^1.0",
+        "open-telemetry/sdk": "^1.1",
+        "open-telemetry/symfony-sdk-bundle": "^0.0.25",
+        "php-http/guzzle7-adapter": "^1.1"
     },
     "extra": {
         "laravel": {

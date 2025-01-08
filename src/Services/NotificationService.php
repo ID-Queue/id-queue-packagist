@@ -150,6 +150,24 @@ class NotificationService
         ];
     }
 
+    public function forgotPassword($forgotPassword): array
+    {
+        $emailResponse = $this->mailService->forgotPassword($forgotPassword);
+
+        if ($emailResponse['status'] === 'success') {
+            return [
+                'status' => 'success',
+                'message' => 'Email notification sent successfully.',
+            ];
+        }
+
+        return [
+            'status' => 'error',
+            'message' => 'Failed to send email notification.',
+            'details' => $emailResponse['error'] ?? 'Unknown error occurred.',
+        ];
+    }
+
     /**
      * Get Dispatch Chart Data and Format Results
      *
@@ -172,8 +190,9 @@ class NotificationService
 
         return $records->map(function ($data) use ($dept_ID, $formatDate, $formatValDate) {
             $approvedBy = '';
-            if (! empty($data->Approved_by_Staff)) {
-                [$approvedByFN, $approvedByLN] = Helper::getUserFirstLastName($dept_ID, $data->Approved_by_Staff);
+
+            if (! empty($data->Staff_GUID)) {
+                [$approvedByFN, $approvedByLN] = Helper::getUserFirstLastNameByGUID($dept_ID, $data->Staff_GUID);
                 $approvedBy = "$approvedByLN, $approvedByFN";
             }
 

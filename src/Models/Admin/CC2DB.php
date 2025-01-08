@@ -38,12 +38,13 @@ class CC2DB extends Model
         'is_mobile_app' => 'boolean',
         'notification_alert' => 'boolean',
         'is_doximity' => 'boolean',
+        'config_val' => 'object',
     ];
 
     public function getConfigValue($key)
     {
         $config = $this->config_val; // This will already be an array due to casting
 
-        return $config[$key] ?? null; // Return the value or null if not found
+        return $config->$key ?? null; // Return the value or null if not found
     }
 }

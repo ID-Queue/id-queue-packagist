@@ -33,6 +33,14 @@ class MailService
     }
 
     /**
+     * Send an email request via API.
+     */
+    public function forgotPassword(array $requestData): array
+    {
+        return $this->makePostRequest('api/forgot-password-temp', $requestData);
+    }
+
+    /**
      * Make a POST request to the mail service.
      */
     private function makePostRequest(string $endpoint, array $data): array

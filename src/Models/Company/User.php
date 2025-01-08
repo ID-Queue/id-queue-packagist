@@ -27,6 +27,8 @@ class User extends Authenticatable
 
     protected $table = 'User_Accounts';
 
+    public $timestamps = false;  // Explicitly set this to false
+
     /**
      * Define casts for datetime attributes.
      */
@@ -98,9 +100,14 @@ class User extends Authenticatable
     /**
      * Define the relationship to AdminStaff.
      */
-    public function services(): BelongsTo
+    public function adminStaff(): BelongsTo
     {
         return $this->belongsTo(AdminStaff::class, 'GUID', 'Acc_ID');
+    }
+
+    public function services(): HasMany
+    {
+        return $this->hasMany(DispatchStaff::class, 'Acc_GUID', 'GUID');
     }
 
     /**
