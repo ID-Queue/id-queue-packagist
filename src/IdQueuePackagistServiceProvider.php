@@ -32,13 +32,13 @@ class IdQueuePackagistServiceProvider extends ServiceProvider
 
         // Merge the package configuration
         $this->mergeConfigFrom(
-            __DIR__.'/config/idqueuepackagist.php',
+            __DIR__ . '/config/idqueuepackagist.php',
             'idqueuepackagist'
         );
 
         // Merge OpenTelemetry configuration
         $this->mergeConfigFrom(
-            __DIR__.'/config/opentelemetry.php',
+            __DIR__ . '/config/opentelemetry.php',
             'opentelemetry'
         );
 
@@ -66,8 +66,8 @@ class IdQueuePackagistServiceProvider extends ServiceProvider
 
         // Publish configuration files
         $this->publishes([
-            __DIR__.'/config/idqueuepackagist.php' => config_path('idqueuepackagist.php'),
-            __DIR__.'/config/opentelemetry.php' => config_path('opentelemetry.php'),
+            __DIR__ . '/config/idqueuepackagist.php' => config_path('idqueuepackagist.php'),
+            __DIR__ . '/config/opentelemetry.php' => config_path('opentelemetry.php'),
         ], 'id-queue-config');
 
         // Register console commands if running in console

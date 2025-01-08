@@ -29,7 +29,7 @@ class NotificationService
     public function notifyStaff(int $deptId, string $serviceName, ?string $bcc, string $url): void
     {
         // Retrieve emails of staff members who match the criteria
-        $emails = User::query()
+        $users = User::query()
             ->join('Dispatch_Staff as ds', 'ds.Acc_GUID', '=', 'User_Accounts.GUID')
             ->where('User_Accounts.Company_Dept_ID', $deptId)
             ->where('ds.Company_Dept_ID', $deptId)
@@ -40,8 +40,16 @@ class NotificationService
                 $query->where('User_Accounts.Account_Deleted', 0)
                     ->orWhereNull('User_Accounts.Account_Deleted');
             })
-            ->pluck('User_Accounts.email')
-            ->toArray(); // Ensures it's an array
+            ->where('User_Accounts.Staff_Login_State', 1)
+            ->get(); // Retrieve the users from the database
+
+        // Filter users with password expiration of 0 days
+        $filteredUsers = $users->filter(function ($user) {
+            return $this->checkPasswordExpiration($user) > 0;
+        });
+
+        // Extract emails
+        $emails = $filteredUsers->pluck('email')->toArray(); // Ensures it's an array
 
         // Ensure there are emails to send
         if (empty($emails)) {
@@ -231,5 +239,18 @@ class NotificationService
                 'Deleted_Reason' => $data->Deleted_Reason,
             ];
         })->toArray();
+    }
+
+    protected function checkPasswordExpiration($user): int
+    {
+        $timeMod = $user->Account_PW_Last_Modified ?? now();
+
+        if ($user->isDirRequestor()) {
+            $timeMod = $timeMod->copy()->addDays(365);
+        } else {
+            $timeMod = $timeMod->copy()->addDays(90);
+        }
+
+        return now()->diffInDays($timeMod, false);
     }
 }
