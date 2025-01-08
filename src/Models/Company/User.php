@@ -183,7 +183,7 @@ class User extends Authenticatable
     public static function getUsersByStatus(UserStatus $status): Collection|_IH_User_C|array
     {
         // Get all users that could match the status.
-        $users = self::all();
+        $users = self::where('isStationed', false)->get();
 
         if ($status->value === UserStatus::Stationed()->value) {
             return self::where(['isStationed' => true, 'Staff_Login_State' => 1])->get();
