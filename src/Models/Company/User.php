@@ -208,4 +208,9 @@ class User extends Authenticatable
             return in_array($user->getStatus(), $statuses);
         });
     }
+
+    public function isDirRequestor(): bool
+    {
+        return ! $this->type_admin && ! $this->type_staff && $this->type_req && $this->type_req_dir_access && ! empty($this->req_short_url);
+    }
 }
