@@ -34,6 +34,7 @@ class ActiveQueue extends Model
 
     // Set the columns that are mass assignable
     protected $fillable = [
+        'ID',
         'GUID',
         'Reoccuring_GUID',
         'Company_Dept_ID',
