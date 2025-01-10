@@ -45,7 +45,7 @@ class MailService
      */
     private function makePostRequest(string $endpoint, array $data): array
     {
-        $url = rtrim(config('idqueuepackagist.mail-service'), '/') . 'MailService.php/' .ltrim($endpoint, '/');
+        $url = rtrim(config('idqueuepackagist.mail-service'), '/') . '/' .ltrim($endpoint, '/');
 
         try {
             $response = Http::withHeaders($this->getDefaultHeaders())->post($url, $data);
