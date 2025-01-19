@@ -12,13 +12,14 @@ use BenSampo\Enum\Enum;
  */
 final class RequestPriority extends Enum
 {
-    const Low = 1;
+    const Low = 3;
 
     const Medium = 2;
 
-    const High = 3;
+    const High = 1;
 
     const Critical = 4;
+
 
     /**
      * Get the color code associated with the priority.
