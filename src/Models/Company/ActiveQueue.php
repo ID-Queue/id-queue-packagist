@@ -222,7 +222,7 @@ class ActiveQueue extends Model
         return $query;
     }
 
-    public static function filterStationed($records)
+    public static function filterStationed($records): Collection
     {
 
         $filteredRecords = collect(); // Initialize an empty collection
@@ -287,7 +287,6 @@ class ActiveQueue extends Model
             ->join('Dispatch_Service as ds', 'Dispatch_Chart_Active_Queue.App_Service', '=', 'ds.Service_Name') // Join with Dispatch_Service table
             ->where('Dispatch_Chart_Active_Queue.Company_Dept_ID', $departmentId) // Specify the table explicitly
             ->filterByUserServices($userServices) // Apply service-based filters
-            ->filterByUserStationed()
             ->whereNull('Dispatch_Chart_Active_Queue.App_Done') // Specify the table explicitly
             ->whereNull('Dispatch_Chart_Active_Queue.App_Declined'); // Specify the table explicitly
         if ($status->value !== RequestStatus::App_Paused) {
