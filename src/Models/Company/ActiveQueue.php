@@ -222,6 +222,48 @@ class ActiveQueue extends Model
         return $query;
     }
 
+    public static function filterStationed($records)
+    {
+
+        $filteredRecords = collect(); // Initialize an empty collection
+
+        foreach ($records as $record) {
+
+            $stationed = StaffStation::where('stationed_status', true)
+                ->get();
+            if ($stationed->isEmpty()) {
+                $filteredRecords->push($record);
+            } else {
+                $stationed->each(function ($station) use ($record, $filteredRecords) {
+                    // Condition 1: App_Zone_GUID and App_Location_GUID are null, and App_Building_GUID is not null
+                    if (is_null($station->App_Zone_GUID) && is_null($station->App_Location_GUID) && ! is_null($station->App_Building_GUID)) {
+                        if ($station->App_Building_GUID != $record->App_Building_GUID) {
+                            $filteredRecords->push($record);
+                        }
+                    }
+
+                    // Condition 2: App_Location_GUID is null, but App_Building_GUID and App_Zone_GUID are not null
+                    elseif (is_null($station->App_Location_GUID) && ! is_null($station->App_Zone_GUID) && ! is_null($station->App_Building_GUID)) {
+                        if ($station->App_Building_GUID != $record->App_Building_GUID || $station->App_Zone_GUID != $record->App_Zone_GUID) {
+                            $filteredRecords->push($record);
+                        }
+                    }
+
+                    // Condition 3: None of the fields are null, and all need to be compared
+                    elseif (! is_null($station->App_Building_GUID) && ! is_null($station->App_Zone_GUID) && ! is_null($station->App_Location_GUID)) {
+                        if ($station->App_Building_GUID != $record->App_Building_GUID && $station->App_Zone_GUID != $record->App_Zone_GUID && $station->App_Location_GUID != $record->App_Location_GUID) {
+                            $filteredRecords->push($record);
+                        }
+                    }
+
+                });
+            }
+        }
+
+        // Ensure the result is a collection
+        return new Collection($filteredRecords->all());
+    }
+
     /**
      * Fetch active queue records with dynamic conditions.
      *
@@ -245,6 +287,7 @@ class ActiveQueue extends Model
             ->join('Dispatch_Service as ds', 'Dispatch_Chart_Active_Queue.App_Service', '=', 'ds.Service_Name') // Join with Dispatch_Service table
             ->where('Dispatch_Chart_Active_Queue.Company_Dept_ID', $departmentId) // Specify the table explicitly
             ->filterByUserServices($userServices) // Apply service-based filters
+            ->filterByUserStationed()
             ->whereNull('Dispatch_Chart_Active_Queue.App_Done') // Specify the table explicitly
             ->whereNull('Dispatch_Chart_Active_Queue.App_Declined'); // Specify the table explicitly
         if ($status->value !== RequestStatus::App_Paused) {
@@ -280,8 +323,9 @@ class ActiveQueue extends Model
             ->orderByRaw('CONVERT(datetime, Dispatch_Chart_Active_Queue.Req_time, 101) ASC'); // Specify the table explicitly
 
         // Apply the status condition based on whether it's pending or another status
+
         if ($status->value === RequestStatus::App_Pending) {
-            return $query->where([
+            $records = $query->where([
                 RequestStatus::App_Approved => null,
                 RequestStatus::App_Arrived => null,
                 RequestStatus::App_Dispatched => null,
@@ -289,11 +333,16 @@ class ActiveQueue extends Model
                 RequestStatus::App_Paused => null,
             ])
                 ->get(); // Return query result for pending status
+
+            return self::filterStationed($records);
+
         }
 
         // For other statuses, apply the status value filter
-        return $query->where($status->value, $value)
+        $records = $query->where($status->value, $value)
             ->get(); // Return query result for other statuses
+
+        return self::filterStationed($records);
     }
 
     public function lifeline(): HasMany

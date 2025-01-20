@@ -11,7 +11,7 @@ class TraceRequests
     public function handle(Request $request, Closure $next)
     {
         // Only proceed if OpenTelemetry is enabled
-        if ((bool)config('opentelemetry.enable', false)) {
+        if ((bool) config('opentelemetry.enable', false)) {
 
             // Initialize tracer and span
             $tracer = app('opentelemetry.tracer');
@@ -30,7 +30,7 @@ class TraceRequests
                 $response = $next($request);
 
                 // If the response is null, initialize an empty response object
-                if (!$response) {
+                if (! $response) {
                     $response = response();
                 }
 

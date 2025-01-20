@@ -103,7 +103,7 @@ class NotificationService
         $deptSettings = DeptPreSetting::where('Company_Dept_ID', $deptId)
             ->select('Service_Single', 'Staff_Single', 'Location_Single', 'Building_Single', 'Person_ID', 'Zone_Single')
             ->first();
-        //App_Zone_GUID
+        // App_Zone_GUID
         $zone = DispatchChart::where('ID', $dispatchData['ID'])->first()->dispatchZone;
 
         $emailRequestData = [
