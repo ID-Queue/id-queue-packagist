@@ -13,7 +13,7 @@ class ExportModelsCommand extends Command
 
     public function handle()
     {
-        $packageModelsPath = __DIR__ . '/../Models';
+        $packageModelsPath = __DIR__.'/../Models';
         $appModelsPath = app_path('Models');
 
         if (! File::exists($packageModelsPath)) {

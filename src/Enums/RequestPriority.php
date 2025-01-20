@@ -20,7 +20,6 @@ final class RequestPriority extends Enum
 
     const Critical = 4;
 
-
     /**
      * Get the color code associated with the priority.
      */
