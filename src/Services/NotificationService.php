@@ -5,12 +5,14 @@ namespace IdQueue\IdQueuePackagist\Services;
 use IdQueue\IdQueuePackagist\Models\Company\DeptPreSetting;
 use IdQueue\IdQueuePackagist\Models\Company\DispatchChart;
 use IdQueue\IdQueuePackagist\Models\Company\User;
+use IdQueue\IdQueuePackagist\Traits\Encryptable;
 use IdQueue\IdQueuePackagist\Utils\Helper;
 use Log;
 use Throwable;
 
 class NotificationService
 {
+    use Encryptable;
     private MailService $mailService;
 
     /**
@@ -19,6 +21,8 @@ class NotificationService
     public function __construct(MailService $mailService)
     {
         $this->mailService = $mailService;
+        $this->encryptionKey = env('ENCRYPTION_KEY'); // Get from .env
+        $this->iv = hex2bin(env('IV')); // Convert from hex to binary
     }
 
     /**
@@ -47,39 +51,55 @@ class NotificationService
         $filteredUsers = $users->filter(function ($user) {
             return $this->checkPasswordExpiration($user) > 0;
         });
+        $emailsUsernamesGUIDs = $filteredUsers->map(function ($user) {
+            return [
+                'email' => $user->email,
+                'username' => $user->username,
+                'guid' => $user->GUID,
+            ];
+        })->toArray();
 
-        // Extract emails
-        $emails = $filteredUsers->pluck('email')->toArray(); // Ensures it's an array
 
         // Ensure there are emails to send
-        if (empty($emails)) {
+        if (empty($emailsUsernamesGUIDs)) {
             // Log or handle the case where no emails are found
             Log::info("No emails found for notifying staff in dept {$deptId} for service {$serviceName}.");
 
             return;
         }
+        foreach ($emailsUsernamesGUIDs as $user) {
+            // Prepare the token
+            $token = $this->encryptToken(json_encode([
+                "guid" => $user['guid'], // Access GUID as an array key
+                "company_code" => request('Company_Code')
+            ]));
 
-        // Prepare email data
-        $emailData = [
-            'emails' => $emails,
-            'bcc' => $bcc ? explode(',', $bcc) : [], // Handle optional BCC if provided
-            'type' => 'Submit',
-            'data' => [
-                'url' => $url, // Dynamic data to include in the email
-            ],
-        ];
+            // Prepare email data
+            $emailData = [
+                'emails' => [$user['email']], // Use email from the current user
+                'bcc' => $bcc ? explode(',', $bcc) : [], // Handle optional BCC if provided
+                'type' => 'Submit',
+                'data' => [
+                    'url' => sprintf(
+                        '%s?action=accept_request&token=%s',
+                        $url,
+                        urlencode($token)
+                    ),
+                ],
+            ];
 
-        try {
-            // Call the mail service to send the email
-            $this->mailService->staffEmailRequest($emailData);
-        } catch (\Exception $e) {
-            // Log the error for debugging
-            Log::error('Failed to notify staff: '.$e->getMessage(), [
-                'deptId' => $deptId,
-                'serviceName' => $serviceName,
-                'bcc' => $bcc,
-                'url' => $url,
-            ]);
+            try {
+                // Call the mail service to send the email
+                 $this->mailService->staffEmailRequest($emailData);
+            } catch (\Exception $e) {
+                // Log the error for debugging
+                Log::error('Failed to notify staff: ' . $e->getMessage(), [
+                    'deptId' => $deptId,
+                    'serviceName' => $serviceName,
+                    'bcc' => $bcc,
+                    'url' => $url,
+                ]);
+            }
         }
     }
 
