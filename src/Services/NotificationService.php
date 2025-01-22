@@ -60,23 +60,6 @@ class NotificationService
         })->toArray();
 
 
-      //  dd($emailsUsernamesGUIDs);
-//        $token = $this->encryptToken(json_encode(["username"=>$user->username,"tmp_password"=>$tmpPss, "company_code"=> $user->Company_Code ]));
-//        $this->notificationService->forgotPassword([
-//            'email' => $email,
-//            'subject' => $subject,
-//            'tmpPss' => $tmpPss,
-//            'login_url' => sprintf(
-//                '%s?action=forget_password&token=%s',
-//                env('REACT_FRONTEND', url('/')),
-//                urlencode($token)
-//            ),
-//        ]);
-       // dd($emailsUsernamesGUIDs);
-
-        // Extract emails
-        //$emails = $filteredUsers->pluck('email')->toArray(); // Ensures it's an array
-
         // Ensure there are emails to send
         if (empty($emailsUsernamesGUIDs)) {
             // Log or handle the case where no emails are found
