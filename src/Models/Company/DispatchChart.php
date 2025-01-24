@@ -32,6 +32,8 @@ class DispatchChart extends Model
         'App_Service_GUID',
         'App_Location_GUID',
         'App_LocDetail',
+        'App_Declined',
+        'Deleted_By_Name',
         'App_Pre_Schedual_Time',
         'App_Zone_GUID',
         'App_Building_GUID',
