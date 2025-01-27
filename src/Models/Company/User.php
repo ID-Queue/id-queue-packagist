@@ -157,6 +157,12 @@ class User extends Authenticatable
         if ((int) $this->Staff_Login_State === 1) {
             return UserStatus::Available;
         }
+        if ((int) $this->Staff_Login_State === 2) {
+            return UserStatus::Lunch;
+        }
+        if ((int) $this->Staff_Login_State === 3) {
+            return UserStatus::NotAvailable;
+        }
 
         return UserStatus::LoggedOut;
     }
