@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
+use IdQueue\IdQueuePackagist\Enums\UserStatus;
 
 class ActiveQueue extends Model
 {
@@ -226,11 +227,11 @@ class ActiveQueue extends Model
     {
 
         $filteredRecords = collect(); // Initialize an empty collection
-
+        $stationedIDs = User::getUsersByStatus(UserStatus::Stationed())->pluck('GUID');
         foreach ($records as $record) {
 
-            $stationed = StaffStation::where('stationed_status', true)
-                ->get();
+            $stationed = StaffStation::whereIn('Staff_GUID',  $stationedIDs)->where('stationed_status', true)
+            ->get();
             if ($stationed->isEmpty()) {
                 $filteredRecords->push($record);
             } else {
