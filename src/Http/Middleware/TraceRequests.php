@@ -5,11 +5,15 @@ namespace IdQueue\IdQueuePackagist\Http\Middleware;
 use Closure;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Route;
 
 class TraceRequests
 {
     public function handle(Request $request, Closure $next)
     {
+        
         // Only proceed if OpenTelemetry is enabled
         if ((bool) config('opentelemetry.enable', false)) {
 
@@ -17,7 +21,9 @@ class TraceRequests
             $tracer = app('opentelemetry.tracer');
             $rootSpan = $tracer->spanBuilder('http_request')->startSpan();
             $scope = $rootSpan->activate();
-
+            $route = Route::current();
+            $middlewares = $route ? $route->gatherMiddleware() : [];
+            Log::info('Middlewares applied to the current route:', $middlewares);
             try {
                 // Set request attributes
                 $rootSpan->setAttribute('http.method', $request->getMethod())
@@ -26,18 +32,25 @@ class TraceRequests
                     ->setAttribute('http.headers', json_encode($request->headers->all()))
                     ->setAttribute('http.body', json_encode($request->all()));
 
+
                 // Pass the request to the next middleware and get the response
                 $response = $next($request);
+             
 
                 // If the response is null, initialize an empty response object
                 if (! $response) {
                     $response = response();
                 }
 
+                if(in_array('auth.services', $middlewares)){
+                    $rootSpan->setAttribute('http.auth', 'true');
+                    $rootSpan->setAttribute('http.auth.data', json_encode(Auth::user()));
+                }
+              
                 // Set response attributes
                 $rootSpan->setAttribute('http.status_code', $response->getStatusCode())
                     ->setAttribute('http.response_headers', json_encode($response->headers->all()))
-                    ->setAttribute('http.response_body', $response instanceof JsonResponse ? $response->getContent() : '');
+                    ->setAttribute('http.response_body', $response instanceof JsonResponse ? $response->getContent() : $response->getContent());
 
                 // Add an event for the request being handled
                 $rootSpan->addEvent('request_handled', [
