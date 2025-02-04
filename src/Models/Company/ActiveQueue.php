@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
 use IdQueue\IdQueuePackagist\Enums\UserStatus;
+use Illuminate\Support\Facades\Log;
 
 class ActiveQueue extends Model
 {
@@ -235,7 +236,7 @@ class ActiveQueue extends Model
             if ($stationed->isEmpty()) {
                 $filteredRecords->push($record);
             } else {
-                $stationed->each(function ($station) use ($record, $filteredRecords) {
+                $stationed->each(function ($station) use ($record, $filteredRecords, $stationedIDs) {
                     // Condition 1: App_Zone_GUID and App_Location_GUID are null, and App_Building_GUID is not null
                     if (is_null($station->App_Zone_GUID) && is_null($station->App_Location_GUID) && ! is_null($station->App_Building_GUID)) {
                         if ($station->App_Building_GUID != $record->App_Building_GUID) {
@@ -252,14 +253,25 @@ class ActiveQueue extends Model
 
                     // Condition 3: None of the fields are null, and all need to be compared
                     elseif (! is_null($station->App_Building_GUID) && ! is_null($station->App_Zone_GUID) && ! is_null($station->App_Location_GUID)) {
-                        if ($station->App_Building_GUID != $record->App_Building_GUID && $station->App_Zone_GUID != $record->App_Zone_GUID && $station->App_Location_GUID != $record->App_Location_GUID) {
+
+                     
+                        if ($station->App_Building_GUID != $record->App_Building_GUID || 
+                            ($station->App_Zone_GUID != $record->App_Zone_GUID || 
+                            $station->App_Location_GUID != $record->App_Location_GUID)) {
                             $filteredRecords->push($record);
                         }
                     }
+                 
+
+                    if(DispatchStaff::whereIn('Acc_GUID', $stationedIDs)->where('Service', $record->App_Service)->count() == 0){
+                        $filteredRecords->push($record);
+                    }
 
                 });
+               
             }
         }
+   
 
         // Ensure the result is a collection
         return new Collection($filteredRecords->all());
@@ -334,7 +346,7 @@ class ActiveQueue extends Model
             ])
                 ->get(); // Return query result for pending status
 
-            return self::filterStationed($records);
+            return self::filterStationed($records)->unique('GUID');
 
         }
 
@@ -342,7 +354,7 @@ class ActiveQueue extends Model
         $records = $query->where($status->value, $value)
             ->get(); // Return query result for other statuses
 
-        return self::filterStationed($records);
+        return self::filterStationed($records)->unique('GUID');
     }
 
     public function lifeline(): HasMany

@@ -13,7 +13,6 @@ class TraceRequests
 {
     public function handle(Request $request, Closure $next)
     {
-        
         // Only proceed if OpenTelemetry is enabled
         if ((bool) config('opentelemetry.enable', false)) {
 
@@ -24,6 +23,7 @@ class TraceRequests
             $route = Route::current();
             $middlewares = $route ? $route->gatherMiddleware() : [];
             Log::info('Middlewares applied to the current route:', $middlewares);
+
             try {
                 // Set request attributes
                 $rootSpan->setAttribute('http.method', $request->getMethod())
@@ -32,25 +32,22 @@ class TraceRequests
                     ->setAttribute('http.headers', json_encode($request->headers->all()))
                     ->setAttribute('http.body', json_encode($request->all()));
 
-
                 // Pass the request to the next middleware and get the response
                 $response = $next($request);
-             
 
-                // If the response is null, initialize an empty response object
-                if (! $response) {
-                    $response = response();
-                }
-
-                if(in_array('auth.services', $middlewares)){
+                if (in_array('auth.services', $middlewares)) {
                     $rootSpan->setAttribute('http.auth', 'true');
                     $rootSpan->setAttribute('http.auth.data', json_encode(Auth::user()));
                 }
-              
-                // Set response attributes
-                $rootSpan->setAttribute('http.status_code', $response->getStatusCode())
-                    ->setAttribute('http.response_headers', json_encode($response->headers->all()))
-                    ->setAttribute('http.response_body', $response instanceof JsonResponse ? $response->getContent() : $response->getContent());
+
+                // Ensure response is valid before logging
+                if ($response instanceof JsonResponse || method_exists($response, 'getStatusCode')) {
+                    $rootSpan->setAttribute('http.status_code', $response->getStatusCode())
+                        ->setAttribute('http.response_headers', json_encode($response->headers->all()))
+                        ->setAttribute('http.response_body', method_exists($response, 'getContent') ? $response->getContent() : '');
+                } else {
+                    Log::warning('TraceRequests middleware encountered an unexpected response type.');
+                }
 
                 // Add an event for the request being handled
                 $rootSpan->addEvent('request_handled', [
@@ -59,15 +56,15 @@ class TraceRequests
                     'status_code' => $response->getStatusCode(),
                 ]);
 
-                return $response;
-
             } catch (\Exception $e) {
-                // Add an error event to the span if any exception occurs
+                // Log error but don't interfere with the response
                 $rootSpan->addEvent('request_error', [
                     'message' => $e->getMessage(),
                     'trace' => $e->getTraceAsString(),
                 ]);
-                throw $e; // Re-throw the exception after logging
+                Log::error('Exception in TraceRequests middleware: ' . $e->getMessage(), [
+                    'trace' => $e->getTraceAsString(),
+                ]);
             } finally {
                 // Always end the span and detach the scope
                 $rootSpan->end();
@@ -75,7 +72,7 @@ class TraceRequests
             }
         }
 
-        // Return the next response if OpenTelemetry is disabled
+        // Return the next response regardless of errors
         return $next($request);
     }
 }
