@@ -229,53 +229,84 @@ class ActiveQueue extends Model
 
         $filteredRecords = collect(); // Initialize an empty collection
         $stationedIDs = User::getUsersByStatus(UserStatus::Stationed())->pluck('GUID');
+      
         foreach ($records as $record) {
-
-            $stationed = StaffStation::whereIn('Staff_GUID',  $stationedIDs)->where('stationed_status', true)
-            ->get();
-            if ($stationed->isEmpty()) {
-                $filteredRecords->push($record);
-            } else {
-                $stationed->each(function ($station) use ($record, $filteredRecords, $stationedIDs) {
-                    // Condition 1: App_Zone_GUID and App_Location_GUID are null, and App_Building_GUID is not null
-                    if (is_null($station->App_Zone_GUID) && is_null($station->App_Location_GUID) && ! is_null($station->App_Building_GUID)) {
-                        if ($station->App_Building_GUID != $record->App_Building_GUID) {
-                            $filteredRecords->push($record);
-                        }
-                    }
-
-                    // Condition 2: App_Location_GUID is null, but App_Building_GUID and App_Zone_GUID are not null
-                    elseif (is_null($station->App_Location_GUID) && ! is_null($station->App_Zone_GUID) && ! is_null($station->App_Building_GUID)) {
-                        if ($station->App_Building_GUID != $record->App_Building_GUID || $station->App_Zone_GUID != $record->App_Zone_GUID) {
-                            $filteredRecords->push($record);
-                        }
-                    }
-
-                    // Condition 3: None of the fields are null, and all need to be compared
-                    elseif (! is_null($station->App_Building_GUID) && ! is_null($station->App_Zone_GUID) && ! is_null($station->App_Location_GUID)) {
-
-                     
-                        if ($station->App_Building_GUID != $record->App_Building_GUID || 
-                            ($station->App_Zone_GUID != $record->App_Zone_GUID || 
-                            $station->App_Location_GUID != $record->App_Location_GUID)) {
-                            $filteredRecords->push($record);
-                        }
-                    }
-                 
-
-                    if(DispatchStaff::whereIn('Acc_GUID', $stationedIDs)->where('Service', $record->App_Service)->count() == 0){
-                        $filteredRecords->push($record);
-                    }
-
-                });
-               
-            }
+           self::checkIfServiceInStationedLoc($record->Company_Dept_ID, $record->App_Service, $record->App_Location_GUID, $record->App_Zone_GUID, $record->App_Building_GUID) ? null : $filteredRecords->push($record);
         }
    
 
         // Ensure the result is a collection
         return new Collection($filteredRecords->all());
     }
+
+  
+
+
+    
+    public static function checkIfServiceInStationedLoc($dept_ID, $tmpServ, $tmpLocGUID, $tmpZoneGUID, $tmpBuildGUID)
+    {
+        $results = StaffStation::select(
+                'Staff_Station.App_Location_GUID as location',
+                'Staff_Station.App_Zone_GUID as zone',
+                'Staff_Station.App_Building_GUID as building',
+                'Dispatch_Staff.Service as service'
+            )
+            ->join('Dispatch_Staff', 'Dispatch_Staff.Acc_GUID', '=', 'Staff_Station.Staff_GUID')
+            ->where('Dispatch_Staff.Company_Dept_ID', $dept_ID)
+            ->where('Staff_Station.Company_Dept_ID', $dept_ID)
+            ->where('Staff_Station.stationed_status', 1)
+            ->get();
+      
+    
+        if ($results->isEmpty()) {
+            return false;
+        }
+    
+        foreach ($results as $row) {
+            $locationMatch = $row->location == $tmpLocGUID || is_null($row->location);
+            $zoneMatch = $row->zone == $tmpZoneGUID || is_null($row->zone);
+            $buildingMatch = $row->building == $tmpBuildGUID;
+            $serviceMatch = $row->service == $tmpServ;
+    
+            if ($buildingMatch && $serviceMatch) {
+                if (is_null($tmpZoneGUID) && is_null($tmpLocGUID)) {
+                    if (is_null($row->location) && is_null($row->zone)) {
+                        return true;
+                    }
+                    if (is_null($row->location) && $zoneMatch) {
+                        return true;
+                    }
+                    if ($locationMatch && $zoneMatch) {
+                        return true;
+                    }
+                } elseif (!is_null($tmpZoneGUID) && is_null($tmpLocGUID)) {
+                    if (is_null($row->location) && is_null($row->zone)) {
+                        return true;
+                    }
+                    if (is_null($row->location) && $zoneMatch) {
+                        return true;
+                    }
+                    if ($locationMatch && $zoneMatch) {
+                        return true;
+                    }
+                } elseif (!is_null($tmpZoneGUID) && !is_null($tmpLocGUID)) {
+                    if (is_null($row->location) && is_null($row->zone)) {
+                        return true;
+                    }
+                    if (is_null($row->location) && $zoneMatch) {
+                        return true;
+                    }
+                    if ($locationMatch && $zoneMatch) {
+                        return true;
+                    }
+                }
+            }
+        }
+    
+        return false;
+    }
+    
+
 
     /**
      * Fetch active queue records with dynamic conditions.
