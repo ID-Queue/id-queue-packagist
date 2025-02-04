@@ -235,7 +235,7 @@ class ActiveQueue extends Model
             if ($stationed->isEmpty()) {
                 $filteredRecords->push($record);
             } else {
-                $stationed->each(function ($station) use ($record, $filteredRecords) {
+                $stationed->each(function ($station) use ($record, $filteredRecords, $stationedIDs) {
                     // Condition 1: App_Zone_GUID and App_Location_GUID are null, and App_Building_GUID is not null
                     if (is_null($station->App_Zone_GUID) && is_null($station->App_Location_GUID) && ! is_null($station->App_Building_GUID)) {
                         if ($station->App_Building_GUID != $record->App_Building_GUID) {
@@ -255,6 +255,10 @@ class ActiveQueue extends Model
                         if ($station->App_Building_GUID != $record->App_Building_GUID && $station->App_Zone_GUID != $record->App_Zone_GUID && $station->App_Location_GUID != $record->App_Location_GUID) {
                             $filteredRecords->push($record);
                         }
+                    }
+
+                    if(DispatchStaff::whereIn('Acc_GUID', $stationedIDs)->where('Service', $record->App_Service)->count() == 0){
+                        $filteredRecords->push($record);
                     }
 
                 });
