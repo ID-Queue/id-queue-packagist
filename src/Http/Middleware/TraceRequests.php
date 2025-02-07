@@ -70,6 +70,8 @@ class TraceRequests
                 $rootSpan->end();
                 $scope->detach();
             }
+            
+            return $response;
         }
 
         // Return the next response regardless of errors
