@@ -91,7 +91,8 @@ class User extends Authenticatable
 
     public function getStaffLoginLocations(): array
     {
-        return explode(',',$this->Staff_Login_Location);
+        // Explode the string into an array and convert each value to uppercase
+        return array_map('strtoupper', explode(',', $this->Staff_Login_Location));
     }
 
     /**
