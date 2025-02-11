@@ -89,6 +89,11 @@ class User extends Authenticatable
         'verify_code',
     ];
 
+    public function getStaffLoginLocations(): array
+    {
+        return explode(',',$this->Staff_Login_Location);
+    }
+
     /**
      * Get the password for authentication.
      */

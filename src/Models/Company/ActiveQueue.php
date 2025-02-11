@@ -243,7 +243,7 @@ class ActiveQueue extends Model
 
 
     
-    public static function checkIfServiceInStationedLoc($dept_ID, $tmpServ, $tmpLocGUID, $tmpZoneGUID, $tmpBuildGUID)
+    public static function checkIfServiceInStationedLoc($dept_ID, $tmpServ, $tmpLocGUID, $tmpZoneGUID, $tmpBuildGUID): bool
     {
         $results = StaffStation::select(
                 'Staff_Station.App_Location_GUID as location',
