@@ -13,7 +13,6 @@ class DispatchService extends Model
 
     public $timestamps = false;  // Explicitly set this to false
 
-    use HasUuids;
 
     public $incrementing = false;
 
@@ -33,7 +32,6 @@ class DispatchService extends Model
     ];
 
     protected $casts = [
-        'Service_GUID' => 'uuid',
         'cost_val' => 'decimal:2',
     ];
 
