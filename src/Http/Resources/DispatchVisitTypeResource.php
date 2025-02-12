@@ -40,7 +40,7 @@ class DispatchVisitTypeResource extends JsonResource
      */
     private function formatLocations(?string $location, $model, $column): Collection
     {
-        if (empty($location)) {
+        if ($location === null || $location === '' || $location === '0') {
             return collect(); // Return an empty collection for consistency
         }
 

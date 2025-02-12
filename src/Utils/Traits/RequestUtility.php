@@ -25,7 +25,7 @@ trait RequestUtility
             'Visit Type' => 'App_Visit_Type',
         ];
 
-        if (empty($snglReqStr) || ! isset($columns[$snglReqStr])) {
+        if ($snglReqStr === '' || $snglReqStr === '0' || ! isset($columns[$snglReqStr])) {
             return response([
                 'status' => 'error',
                 'message' => 'Something Went Wrong!',

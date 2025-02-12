@@ -72,7 +72,6 @@ class DispatchHours extends Model
         'Sat_Close_Time' => 'datetime:H:i:s',
     ];
 
-
     /**
      * Define the relationship to the DispatchDepartment model.
      */
@@ -89,7 +88,7 @@ class DispatchHours extends Model
         // Fetch dispatch hours for the given department
         $dispatchHours = self::where('Company_Dept_ID', $dept_ID)->first();
 
-        if (!$dispatchHours) {
+        if (! $dispatchHours) {
             return false;
         }
 
@@ -105,7 +104,7 @@ class DispatchHours extends Model
         ];
 
         // Ensure the day exists in mapping
-        if (!isset($dayMapping[$day])) {
+        if (! isset($dayMapping[$day])) {
             throw new Exception("Invalid day value: $day.");
         }
 
@@ -120,12 +119,10 @@ class DispatchHours extends Model
         // dd($openTime, $closeTime, $currentTime);
 
         // Ensure times are not null
-        if (!$openTime || !$closeTime) {
+        if (! $openTime || ! $closeTime) {
             return false;
         }
 
         return $currentTime->between($openTime, $closeTime);
     }
-
-
 }

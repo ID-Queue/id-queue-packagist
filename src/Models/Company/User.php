@@ -140,9 +140,11 @@ class User extends Authenticatable
     /**
      * Format the `Check_In_At` attribute as a string.
      */
-    public function getCheckInAtAttribute($value): string
+    protected function checkInAt(): \Illuminate\Database\Eloquent\Casts\Attribute
     {
-        return Carbon::parse($value)->toDateTimeString();
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(get: function ($value) {
+            return Carbon::parse($value)->toDateTimeString();
+        });
     }
 
     /**
@@ -196,7 +198,7 @@ class User extends Authenticatable
     {
         // Get all users that could match the status.
         $users = self::where('isStationed', false)
-                    ->orWhere('isStationed', null)->get();
+            ->orWhere('isStationed', null)->get();
 
         if ($status->value === UserStatus::Stationed()->value) {
             return self::where(['isStationed' => true, 'Staff_Login_State' => 1])->get();

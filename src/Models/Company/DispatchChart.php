@@ -86,11 +86,12 @@ class DispatchChart extends Model
     /**
      * Set the Dispatch_Notes attribute.
      */
-    public function setDispatchNotesAttribute(string $value): void
+    protected function dispatchNotes(): \Illuminate\Database\Eloquent\Casts\Attribute
     {
-        // Modify the dispatch note, for example, trimming the whitespace
-        // and encoding the text before saving
-        $this->attributes['Dispatch_Notes'] = trim($value); // Add your custom logic here
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(set: function (string $value) {
+            // Add your custom logic here
+            return ['Dispatch_Notes' => trim($value)];
+        });
     }
 
     public function department(): BelongsTo

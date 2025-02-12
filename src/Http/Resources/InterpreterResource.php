@@ -44,7 +44,7 @@ class InterpreterResource extends JsonResource
      */
     private function formatLastActionTime(?Carbon $lastAction): array
     {
-        if (! $lastAction) {
+        if (! $lastAction instanceof \Carbon\Carbon) {
             return ['', ''];
         }
 
@@ -59,7 +59,7 @@ class InterpreterResource extends JsonResource
      */
     private function calculateRequestTimer(?Carbon $lastAction): string
     {
-        if (! $lastAction) {
+        if (! $lastAction instanceof \Carbon\Carbon) {
             return '';
         }
 
@@ -95,6 +95,6 @@ class InterpreterResource extends JsonResource
 
         $buildings = DispatchBuilding::getBuildingsByID($dept_ID, $staffLoc);
 
-        return ! empty($buildings) ? implode(', ', $buildings) : '';
+        return $buildings === [] ? '' : implode(', ', $buildings);
     }
 }

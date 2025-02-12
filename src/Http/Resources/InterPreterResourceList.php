@@ -27,7 +27,7 @@ class InterPreterResourceList extends JsonResource
                 'stationed' => $this->mapAvailableInterpreters($this->resource->users['stationed'] ?? []),
                 'accepted' => $this->mapAvailableInterpreters($this->resource->users['accepted'] ?? []),
                 'lunchandna' => $this->mapAvailableInterpreters($this->resource->users['lunchandna'] ?? []),
-            ]
+            ],
         ];
 
     }

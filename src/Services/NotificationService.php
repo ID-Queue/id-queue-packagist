@@ -13,6 +13,7 @@ use Throwable;
 class NotificationService
 {
     use Encryptable;
+
     private MailService $mailService;
 
     /**
@@ -59,7 +60,6 @@ class NotificationService
             ];
         })->toArray();
 
-
         // Ensure there are emails to send
         if (empty($emailsUsernamesGUIDs)) {
             // Log or handle the case where no emails are found
@@ -70,8 +70,8 @@ class NotificationService
         foreach ($emailsUsernamesGUIDs as $user) {
             // Prepare the token
             $token = $this->encryptToken(json_encode([
-                "guid" => $user['guid'], // Access GUID as an array key
-                "company_code" => request('Company_Code')
+                'guid' => $user['guid'], // Access GUID as an array key
+                'company_code' => request('Company_Code'),
             ]));
 
             // Prepare email data
@@ -90,10 +90,10 @@ class NotificationService
 
             try {
                 // Call the mail service to send the email
-                 $this->mailService->staffEmailRequest($emailData);
+                $this->mailService->staffEmailRequest($emailData);
             } catch (\Exception $e) {
                 // Log the error for debugging
-                Log::error('Failed to notify staff: ' . $e->getMessage(), [
+                Log::error('Failed to notify staff: '.$e->getMessage(), [
                     'deptId' => $deptId,
                     'serviceName' => $serviceName,
                     'bcc' => $bcc,
@@ -110,7 +110,7 @@ class NotificationService
     {
         $dispatchDataArray = $this->getDispatchChartData($deptId, $idVal);
 
-        if (empty($dispatchDataArray) || ! isset($dispatchDataArray[0])) {
+        if ($dispatchDataArray === [] || ! isset($dispatchDataArray[0])) {
             return [
                 'status' => 'error',
                 'message' => 'No dispatch data found for the given ID and department.',
@@ -265,11 +265,7 @@ class NotificationService
     {
         $timeMod = $user->Account_PW_Last_Modified ?? now();
 
-        if ($user->isDirRequestor()) {
-            $timeMod = $timeMod->copy()->addDays(365);
-        } else {
-            $timeMod = $timeMod->copy()->addDays(90);
-        }
+        $timeMod = $user->isDirRequestor() ? $timeMod->copy()->addDays(365) : $timeMod->copy()->addDays(90);
 
         return now()->diffInDays($timeMod, false);
     }

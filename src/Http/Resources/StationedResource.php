@@ -21,7 +21,7 @@ class StationedResource extends JsonResource
         $location = [
             'location' => null,
         ];
-        if (isset($this->location)) {
+        if (property_exists($this, 'location') && $this->location !== null) {
             $location['location'] = $this->location->name;
         }
 
