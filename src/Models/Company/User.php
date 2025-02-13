@@ -89,6 +89,10 @@ class User extends Authenticatable
         'verify_code',
     ];
 
+    public function getFormattedNameAttribute(): string
+    {
+        return "{$this->Last_name}, {$this->First_name}";
+    }
     public function getStaffLoginLocations(): array
     {
         // Explode the string into an array and convert each value to uppercase

@@ -32,6 +32,11 @@ class DispatchChart extends Model
         'App_Service_GUID',
         'App_Location_GUID',
         'App_LocDetail',
+        'App_Approved',
+        'App_Arrived',
+        'App_Session',
+        'App_Paused',
+        'App_Done',
         'App_Declined',
         'Deleted_By_Name',
         'App_Pre_Schedual_Time',
@@ -66,6 +71,7 @@ class DispatchChart extends Model
         'Declined_Time',
         'Dispatched_Time',
         'Dispatch_Notes',
+        'Release_Notes'
     ];
 
     protected $casts = [
@@ -81,6 +87,13 @@ class DispatchChart extends Model
         'Priority' => 'integer',
         'App_Visit_Type_ID' => 'integer',
         'Req_DoximityNo' => 'integer',
+        'App_Pre_Schedual_Time' => 'datetime',
+        'App_Done' => 'boolean',
+        'App_Declined' => 'boolean',
+        'App_Approved' => 'boolean',
+        'App_Arrived' => 'boolean',
+        'App_Session' => 'boolean',
+        'App_Paused' => 'boolean',
     ];
 
     /**
