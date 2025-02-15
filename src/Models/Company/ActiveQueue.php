@@ -323,8 +323,15 @@ class ActiveQueue extends Model
             ->join('Dispatch_Service as ds', 'Dispatch_Chart_Active_Queue.App_Service', '=', 'ds.Service_Name') // Join with Dispatch_Service table
             ->where('Dispatch_Chart_Active_Queue.Company_Dept_ID', $departmentId) // Specify the table explicitly
             ->filterByUserServices($userServices) // Apply service-based filters
-            ->whereNull('Dispatch_Chart_Active_Queue.App_Done') // Specify the table explicitly
-            ->whereNull('Dispatch_Chart_Active_Queue.App_Declined'); // Specify the table explicitly
+            ->where(function ($query) {
+                $query->whereNull('Dispatch_Chart_Active_Queue.App_Done')
+                      ->orWhere('Dispatch_Chart_Active_Queue.App_Done', 0);
+            })
+            ->where(function ($query) {
+                $query->whereNull('Dispatch_Chart_Active_Queue.App_Declined')
+                      ->orWhere('Dispatch_Chart_Active_Queue.App_Declined', 0);
+            });
+            
         if ($status->value !== RequestStatus::App_Paused) {
             $query = $query->where(function ($query) {
                 $query->where('Dispatch_Chart_Active_Queue.App_Paused', false)
