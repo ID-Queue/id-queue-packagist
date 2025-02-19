@@ -23,7 +23,7 @@ class InterpreterResource extends JsonResource
             'guid' => $this->resource->GUID,
             'staff_name' => "{$this->resource->First_name} {$this->resource->Last_name}",
             'location' => $this->formatStaffLocation($this->resource->Staff_Login_Location, $this->resource->Company_Dept_ID),
-            //'last_location' => ((bool) $this->resource->isStationed) ? StationedResource::collection($this->staffStation->load(['location', 'zone', 'building'])) : new LastLocationResource($this->lastLocation->load(['location', 'zone', 'building'])),
+            // 'last_location' => ((bool) $this->resource->isStationed) ? StationedResource::collection($this->staffStation->load(['location', 'zone', 'building'])) : new LastLocationResource($this->lastLocation->load(['location', 'zone', 'building'])),
             'last_location' => $this->resource->isStationed && $this->resource->staffStation()->exists()
             ? StationedResource::collection($this->staffStation->load(['location', 'zone', 'building']))
             : ($this->lastLocation()->exists()

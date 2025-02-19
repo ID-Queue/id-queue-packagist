@@ -71,14 +71,14 @@ class DispatchChart extends Model
         'Declined_Time',
         'Dispatched_Time',
         'Dispatch_Notes',
-        'Release_Notes'
+        'Release_Notes',
     ];
 
     protected $casts = [
         'Req_Video_Conf' => 'boolean',
         'App_Time' => 'datetime',
         'Req_Time' => 'datetime',
-        'Pre_Req_Time' =>  'datetime',
+        'Pre_Req_Time' => 'datetime',
         'Approved_Time' => 'datetime',
         'Arrived_Time' => 'datetime',
         'Session_Time' => 'datetime',

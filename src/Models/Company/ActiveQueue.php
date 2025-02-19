@@ -325,13 +325,13 @@ class ActiveQueue extends Model
             ->filterByUserServices($userServices) // Apply service-based filters
             ->where(function ($query) {
                 $query->whereNull('Dispatch_Chart_Active_Queue.App_Done')
-                      ->orWhere('Dispatch_Chart_Active_Queue.App_Done', 0);
+                    ->orWhere('Dispatch_Chart_Active_Queue.App_Done', 0);
             })
             ->where(function ($query) {
                 $query->whereNull('Dispatch_Chart_Active_Queue.App_Declined')
-                      ->orWhere('Dispatch_Chart_Active_Queue.App_Declined', 0);
+                    ->orWhere('Dispatch_Chart_Active_Queue.App_Declined', 0);
             });
-            
+
         if ($status->value !== RequestStatus::App_Paused) {
             $query = $query->where(function ($query) {
                 $query->where('Dispatch_Chart_Active_Queue.App_Paused', false)

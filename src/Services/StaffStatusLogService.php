@@ -11,11 +11,6 @@ class StaffStatusLogService
 {
     /**
      * Log a staff status event.
-     *
-     * @param int $companyDeptId
-     * @param int $staffStatus
-     * @param string $message
-     * @return void
      */
     public function logStaffStatusEvent(int $companyDeptId, int $staffStatus, string $message): void
     {
@@ -28,7 +23,7 @@ class StaffStatusLogService
                 'Staff_Action_DateTime' => Carbon::now(),
             ]);
         } catch (\Exception $e) {
-            Log::error('Failed to log staff status event: ' . $e->getMessage());
+            Log::error('Failed to log staff status event: '.$e->getMessage());
         }
     }
 }

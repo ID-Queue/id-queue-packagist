@@ -3,7 +3,6 @@
 namespace IdQueue\IdQueuePackagist\Models\Company;
 
 use IdQueue\IdQueuePackagist\Traits\CompanyDbConnection;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -12,7 +11,6 @@ class DispatchService extends Model
     use CompanyDbConnection;
 
     public $timestamps = false;  // Explicitly set this to false
-
 
     public $incrementing = false;
 

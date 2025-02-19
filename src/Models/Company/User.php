@@ -89,10 +89,13 @@ class User extends Authenticatable
         'verify_code',
     ];
 
-    public function getFormattedNameAttribute(): string
+    protected function formattedName(): \Illuminate\Database\Eloquent\Casts\Attribute
     {
-        return "{$this->Last_name}, {$this->First_name}";
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(get: function () {
+            return "{$this->Last_name}, {$this->First_name}";
+        });
     }
+
     public function getStaffLoginLocations(): array
     {
         // Explode the string into an array and convert each value to uppercase
