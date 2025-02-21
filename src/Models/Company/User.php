@@ -249,4 +249,25 @@ class User extends Authenticatable
     {
         return ! $this->type_admin && ! $this->type_staff && $this->type_req && $this->type_req_dir_access && ! empty($this->req_short_url);
     }
+
+    public function updateUserAccount($isMobile, $deviceToken = null, $deviceType = null)
+    {
+        $this->is_mobile = $isMobile;
+        $this->device_token = $deviceToken;
+        $this->device_type = $deviceType;
+
+        $this->save();
+    }
+
+    public function createResetToken()
+    {
+        $tokenContext = $this->GUID.'|'.$this->Company_Dept_ID.'|'.$this->Company_Code;
+
+        return $this->encryptToken($tokenContext); // Encrypt the token
+    }
+
+    public function verifyResetToken($encryptedToken)
+    {
+        return $this->decryptToken($encryptedToken); // Decrypt the token
+    }
 }
