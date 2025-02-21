@@ -309,14 +309,17 @@ class ActiveQueue extends Model
      * @param  int  $departmentId  The ID of the company department.
      * @return Collection The resulting collection of records.
      */
-    public static function fetchActiveQueue(int $departmentId, RequestStatus $status, bool $value = true, bool $filterStationed = true): Collection
+    public static function fetchActiveQueue(int $departmentId, RequestStatus $status, bool $value = true, bool $filterStationed = true, bool $websocket = false): Collection
     {
         // Calculate the pre-scheduled time threshold for the department using Carbon
         $preScheduledTimeThreshold = Helper::return_TotalPreschedTime($departmentId);
         $preScheduledTime = Carbon::now()->addMinutes($preScheduledTimeThreshold);
 
         // Retrieve the list of services associated with the current user
-        $userServices = Auth::user()->services()->pluck('Service')->toArray();
+        $userServices = [];
+        if(!$websocket){
+            $userServices = Auth::user()->services()->pluck('Service')->toArray();
+        }
 
         // Base query to avoid duplication
         $query = self::query()
