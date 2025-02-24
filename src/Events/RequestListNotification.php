@@ -6,6 +6,7 @@ use IDQueue\IDQueuePackagist\Enums\RequestStatus;
 use IdQueue\IdQueuePackagist\Enums\UserStatus;
 use IdQueue\IdQueuePackagist\Http\Resources\DispatchRequestList;
 use IdQueue\IdQueuePackagist\Http\Resources\InterPreterResourceList;
+use IdQueue\IdQueuePackagist\Http\Resources\RequestResource;
 use IdQueue\IdQueuePackagist\Models\Admin\CC2DB;
 use IdQueue\IdQueuePackagist\Models\Company\ActiveQueue;
 use IdQueue\IdQueuePackagist\Models\Company\User;
@@ -19,7 +20,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-class GroupNotification implements ShouldBroadcastNow
+class RequestListNotification implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -45,6 +46,8 @@ class GroupNotification implements ShouldBroadcastNow
 
     public string $user_id;
 
+    public string $request_id;
+
     /**
      * Initialize a new GroupNotification instance.
      *
@@ -53,13 +56,14 @@ class GroupNotification implements ShouldBroadcastNow
      * @param  string  $companyCode  The company code.
      * @param  int  $deptID  The department ID.
      */
-    public function __construct(string $message, string $group, string $companyCode, int $deptID, string $user_id)
+    public function __construct(string $message, string $group, string $companyCode, int $deptID, string $user_id, string $request_id = null)
     {
         $this->message = $message;
         $this->group = $group;
         $this->companyCode = $companyCode;
         $this->deptID = $deptID;
         $this->user_id = $user_id;
+        $this->request_id = $request_id;
 
         $db = CC2DB::where('Company_Code', $this->companyCode)->first();
 
@@ -95,7 +99,7 @@ class GroupNotification implements ShouldBroadcastNow
      */
     public function broadcastAs(): string
     {
-        return 'request.updated';
+        return 'dispatch-updated';
     }
 
     /**
@@ -105,66 +109,15 @@ class GroupNotification implements ShouldBroadcastNow
      */
     public function broadcastWith(): array
     {
+        
         return [
             'event' => $this->message,
-            'group' => $this->group,
-            'companyCode' => $this->companyCode,
-            'deptID' => $this->deptID,
             'data' => [
-                'dispatch' => [
-                    'interpreterlist' => json_encode($this->getOnlineInterpreterList()),
-                    'dispatchlist' =>  json_encode($this->getDispatchList()),
-                ],
-            ],
+                "request" => new RequestResource(ActiveQueue::where('GUID', $this->request_id)->first()),
+                "status" => ActiveQueue::getStatusByGUID($this->request_id)
+            ]
+           
         ];
-    }
-
-    public function getOnlineInterpreterList()
-    {
-        $departmentId = $this->deptID;
-        $users = User::where('Company_Dept_ID', $this->deptID)
-            ->where('Type_Staff', '1')
-            ->where(function ($query) {
-                $query->whereNull('Account_Deleted')
-                    ->orWhere('Account_Deleted', false);
-            })
-            ->get();
-
-        $data = (object) [
-            'department' => $departmentId,
-            'users' => collect([
-                'available' => UserStatus::Available,
-                'arrived' => UserStatus::Arrived,
-                'dispatched' => UserStatus::Dispatched,
-                'session' => UserStatus::InProgress,
-                'paused' => UserStatus::Paused,
-                'stationed' => UserStatus::Stationed,
-                'accepted' => UserStatus::Accepted,
-                'lunchandna' => [
-                    UserStatus::Lunch()->value,
-                    UserStatus::NotAvailable()->value,
-                ],
-            ])->mapWithKeys(function ($status, $key) use ($users) {
-                // Filter users based on stationed condition first
-
-                if ($key === 'stationed') {
-                    $filteredUsers = $users->filter(fn ($user) => ($user->isStationed == true && $user->Staff_Login_State == 1));
-
-                    return [$key => $filteredUsers];
-                }
-                $filteredUsers = $users->filter(fn ($user) => ($user->isStationed == false || $user->isStationed == null));
-                // If status is 'lunchandna', check for array of statuses
-                if ($key === 'lunchandna') {
-                    return [$key => $filteredUsers->filter(fn ($user) => in_array($user->getStatus(), $status))];
-                }
-
-                // For other statuses, just match the status
-                return [$key => $filteredUsers->filter(fn ($user) => $user->getStatus() === $status)];
-            }),
-        ];
-
-        // Return the prepared data as a resource
-        return new InterPreterResourceList($data);
     }
 
     public function getDispatchList()

@@ -2,11 +2,14 @@
 
 namespace IdQueue\IdQueuePackagist\Services;
 
+use IdQueue\IdQueuePackagist\Events\GroupNotification;
+use IdQueue\IdQueuePackagist\Events\InterpreterListNotification;
 use IdQueue\IdQueuePackagist\Models\Company\DeptPreSetting;
 use IdQueue\IdQueuePackagist\Models\Company\DispatchChart;
 use IdQueue\IdQueuePackagist\Models\Company\User;
 use IdQueue\IdQueuePackagist\Traits\Encryptable;
 use IdQueue\IdQueuePackagist\Utils\Helper;
+use Illuminate\Support\Facades\Http;
 use Log;
 use Throwable;
 
@@ -268,5 +271,51 @@ class NotificationService
         $timeMod = $user->isDirRequestor() ? $timeMod->copy()->addDays(365) : $timeMod->copy()->addDays(90);
 
         return now()->diffInDays($timeMod, false);
+    }
+
+    // In your controller or service class
+    public function sendGroupNotification($departmentId, $companyCode)
+    {
+        // Fetch users based on the given department ID and other conditions
+        $users = User::where('Company_Dept_ID', $departmentId)
+            ->where(function ($query) {
+                $query->whereNull('Account_Deleted')
+                    ->orWhere('Account_Deleted', false);
+            })
+            ->where(function ($query) {
+                $query->where('Staff_Login_State', '1')
+                    ->orWhere('loggedInStatus', '1');
+            })
+            ->get();
+
+        // Trigger the event to send the notification for each user
+        foreach ($users as $user) {
+            event(new InterpreterListNotification(
+                'interpreter-updated',
+                'staff',
+                $companyCode,
+                $departmentId,
+                $user->GUID  // Assuming the GUID is stored in the `GUID` column of the User model
+            ));
+        }
+    }
+
+    public function sendNotification($dept_ID, $staffID, $prioVal): \Illuminate\Http\JsonResponse|string
+    {
+        $url = env('REQUESTOR_SERVICE', 'https://req.dev1.id-queue.com/api/send/notification').'api/send/notification';
+
+        $response = Http::asForm()->post($url, [
+            'd_id' => $dept_ID,
+            'stud_ID' => $staffID,
+            'priority' => $prioVal,
+        ]);
+
+        // Handling the response
+        if ($response->successful()) {
+            return $response->body();
+        } else {
+            // Handle error response
+            return response()->json(['error' => 'Failed to send notification'], $response->status());
+        }
     }
 }

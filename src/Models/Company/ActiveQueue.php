@@ -317,7 +317,7 @@ class ActiveQueue extends Model
 
         // Retrieve the list of services associated with the current user
         $userServices = [];
-        if(!$websocket){
+        if (! $websocket) {
             $userServices = Auth::user()->services()->pluck('Service')->toArray();
         }
 
@@ -396,6 +396,44 @@ class ActiveQueue extends Model
 
         return $records->unique('GUID');
     }
+
+    public static function getStatusByGUID(string $guid): ?RequestStatus
+{
+        // Retrieve the record with the given GUID
+        $record = self::query()
+            ->where('GUID', $guid)
+            ->first();
+
+        // If no record is found, return null
+        if (! $record) {
+            return null;
+        }
+
+        // Check the status based on the available fields
+        if ($record->App_Session) {
+            return RequestStatus::App_Session();
+        }
+        if ($record->App_Arrived) {
+            return RequestStatus::App_Arrived();
+        }
+        if ($record->App_Approved) {
+            return RequestStatus::App_Approved();
+        }
+        if ($record->App_Dispatched) {
+            return RequestStatus::App_Dispatched();
+        }
+        if ($record->App_Paused) {
+            return RequestStatus::App_Paused();
+        }
+        if (is_null($record->App_Approved) && is_null($record->App_Arrived) &&
+            is_null($record->App_Dispatched) && is_null($record->App_Session) &&
+            is_null($record->App_Paused)) {
+            return RequestStatus::App_Pending();
+        }
+
+        return null; // If no specific status is found
+}
+
 
     public function lifeline(): HasMany
     {
