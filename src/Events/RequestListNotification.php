@@ -109,7 +109,7 @@ class RequestListNotification implements ShouldBroadcastNow
      */
     public function broadcastWith(): array
     {
-        
+       
         return [
             'event' => $this->message,
             'data' => [
@@ -120,29 +120,4 @@ class RequestListNotification implements ShouldBroadcastNow
         ];
     }
 
-    public function getDispatchList()
-    {
-
-        // Mock data (replace these with actual queries from the database)
-        // Fetch department ID from the request
-
-        $departmentId = $this->deptID;
-
-        // Fetch data dynamically (replace mock data with actual database queries)
-        $data = (object) [
-            'department' => $departmentId,
-            'queues' => [
-                'pending' => ActiveQueue::fetchActiveQueue($departmentId, RequestStatus::App_Pending()),
-                'dispatched' => ActiveQueue::fetchActiveQueue($departmentId, RequestStatus::App_Dispatched()),
-                'paused' => ActiveQueue::fetchActiveQueue($departmentId, RequestStatus::App_Paused()),
-                'accepted' => ActiveQueue::fetchActiveQueue($departmentId, RequestStatus::App_Approved()),
-                'arrived' => ActiveQueue::fetchActiveQueue($departmentId, RequestStatus::App_Arrived()),
-                'insession' => ActiveQueue::fetchActiveQueue($departmentId, RequestStatus::App_Session()),
-            ],
-        ];
-
-        // Return the prepared data as a resource
-        return new DispatchRequestList($data);
-
-    }
 }

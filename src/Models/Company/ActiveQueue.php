@@ -224,6 +224,66 @@ class ActiveQueue extends Model
         return $query;
     }
 
+    public static function getMatchingStaffGUIDs($dept_ID, $tmpServ, $tmpLocGUID, $tmpZoneGUID, $tmpBuildGUID): array
+    {
+        $results = StaffStation::select(
+            'Staff_Station.Staff_GUID as staff_guid',
+            'Staff_Station.App_Location_GUID as location',
+            'Staff_Station.App_Zone_GUID as zone',
+            'Staff_Station.App_Building_GUID as building',
+            'Dispatch_Staff.Service as service'
+        )
+            ->join('Dispatch_Staff', 'Dispatch_Staff.Acc_GUID', '=', 'Staff_Station.Staff_GUID')
+            ->where('Dispatch_Staff.Company_Dept_ID', $dept_ID)
+            ->where('Staff_Station.Company_Dept_ID', $dept_ID)
+            ->where('Staff_Station.stationed_status', 1)
+            ->get();
+
+        if ($results->isEmpty()) {
+            return [];
+        }
+
+        $matchingStaff = [];
+
+        foreach ($results as $row) {
+            $locationMatch = $row->location == $tmpLocGUID || is_null($row->location);
+            $zoneMatch = $row->zone == $tmpZoneGUID || is_null($row->zone);
+            $buildingMatch = $row->building == $tmpBuildGUID;
+            $serviceMatch = $row->service == $tmpServ;
+
+            if ($buildingMatch && $serviceMatch) {
+                if (is_null($tmpZoneGUID) && is_null($tmpLocGUID)) {
+                    if (is_null($row->location) && is_null($row->zone)) {
+                        $matchingStaff[] = $row->staff_guid;
+                    } elseif (is_null($row->location) && $zoneMatch) {
+                        $matchingStaff[] = $row->staff_guid;
+                    } elseif ($locationMatch && $zoneMatch) {
+                        $matchingStaff[] = $row->staff_guid;
+                    }
+                } elseif (!is_null($tmpZoneGUID) && is_null($tmpLocGUID)) {
+                    if (is_null($row->location) && is_null($row->zone)) {
+                        $matchingStaff[] = $row->staff_guid;
+                    } elseif (is_null($row->location) && $zoneMatch) {
+                        $matchingStaff[] = $row->staff_guid;
+                    } elseif ($locationMatch && $zoneMatch) {
+                        $matchingStaff[] = $row->staff_guid;
+                    }
+                } elseif (!is_null($tmpZoneGUID) && !is_null($tmpLocGUID)) {
+                    if (is_null($row->location) && is_null($row->zone)) {
+                        $matchingStaff[] = $row->staff_guid;
+                    } elseif (is_null($row->location) && $zoneMatch) {
+                        $matchingStaff[] = $row->staff_guid;
+                    } elseif ($locationMatch && $zoneMatch) {
+                        $matchingStaff[] = $row->staff_guid;
+                    }
+                }
+            }
+        }
+
+        return $matchingStaff;
+    }
+
+
     public static function filterStationed($records): Collection
     {
 

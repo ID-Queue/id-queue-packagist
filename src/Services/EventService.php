@@ -43,7 +43,12 @@ class EventService
      */
     public function dispatchEvents(array $eventTypes, array $extraParams = [])
     {
+        if(isset($extraParams['checkedInIds'])){
+            $this->users = $this->users->whereIn('GUID',$extraParams['checkedInIds'] )->all();
+        }
+     
         foreach ($this->users as $user) {
+            
             foreach ($eventTypes as $eventType) {
                 switch ($eventType) {
                     case EventType::INTERPRETER_UPDATED:
