@@ -17,7 +17,7 @@ class DispatchRequestList extends JsonResource
         return [
 
             'requests' => [
-                'columns' => DispatchAndInterpreterResource::getColumns($this->resource->department), // Add columns object
+                'columns' => DispatchAndInterpreterResource::getColumns($this->resource->department)->toArray(), // Add columns object
                 'pending' => $this->mapRequestStatus($this->resource->queues['pending'] ?? []),
                 'dispatched' => $this->mapRequestStatus($this->resource->queues['dispatched'] ?? []),
                 'paused' => $this->mapRequestStatus($this->resource->queues['paused'] ?? []),

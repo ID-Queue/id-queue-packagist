@@ -20,20 +20,20 @@ class LastLocationResource extends JsonResource
     public function toArray($request)
     {
         $location = [
-            'location' => $this->location->name,
+            'location' => $this->location?->name ?? null,
         ];
-
+    
         $settings = [
             AppSettings::App_Zone_Show => 'zone',
             AppSettings::App_Building_Show => 'building',
         ];
-
+    
         foreach ($settings as $setting => $key) {
             if (AdminServiceSetting::getSettingFor($setting)) {
-                $location[$key] = $this->{$key}->name;
+                $location[$key] = $this->{$key}?->name ?? null;
             }
         }
-
+    
         return $location;
     }
 }
