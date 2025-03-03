@@ -10,7 +10,7 @@ trait BuildingUtility
         string $servBuild, string $zone, bool $appZoneShow,
         string $loc, bool $appLocShow, int $dept_ID
     ): bool {
-        if (! ($appZoneShow || $appLocShow)) {
+        if (! $appZoneShow && ! $appLocShow) {
             return true;  // If neither is enabled, return true early
         }
 

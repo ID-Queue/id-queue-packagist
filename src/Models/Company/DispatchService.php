@@ -3,7 +3,6 @@
 namespace IdQueue\IdQueuePackagist\Models\Company;
 
 use IdQueue\IdQueuePackagist\Traits\CompanyDbConnection;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -12,8 +11,6 @@ class DispatchService extends Model
     use CompanyDbConnection;
 
     public $timestamps = false;  // Explicitly set this to false
-
-    use HasUuids;
 
     public $incrementing = false;
 
@@ -33,7 +30,6 @@ class DispatchService extends Model
     ];
 
     protected $casts = [
-        'Service_GUID' => 'uuid',
         'cost_val' => 'decimal:2',
     ];
 

@@ -5,6 +5,7 @@ namespace IdQueue\IdQueuePackagist\Models\Company;
 use Auth;
 use Carbon\Carbon;
 use IdQueue\IdQueuePackagist\Enums\RequestStatus;
+use IdQueue\IdQueuePackagist\Enums\UserStatus;
 use IdQueue\IdQueuePackagist\Traits\CompanyDbConnection;
 use IdQueue\IdQueuePackagist\Utils\Helper;
 use Illuminate\Database\Eloquent\Builder;
@@ -13,8 +14,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
-use IdQueue\IdQueuePackagist\Enums\UserStatus;
-use Illuminate\Support\Facades\Log;
 
 class ActiveQueue extends Model
 {
@@ -91,11 +90,12 @@ class ActiveQueue extends Model
     /**
      * Set the Dispatch_Notes attribute.
      */
-    public function setDispatchNotesAttribute(string $value): void
+    protected function dispatchNotes(): \Illuminate\Database\Eloquent\Casts\Attribute
     {
-        // Modify the dispatch note, for example, trimming the whitespace
-        // and encoding the text before saving
-        $this->attributes['Dispatch_Notes'] = trim($value); // Add your custom logic here
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(set: function (string $value) {
+            // Add your custom logic here
+            return ['Dispatch_Notes' => trim($value)];
+        });
     }
 
     public function department(): BelongsTo
@@ -213,7 +213,7 @@ class ActiveQueue extends Model
     {
 
         // Add filtering only if the user is not an 'Admin' and the service list is not empty
-        if (Auth::user()->Type_Of_Admin !== 'Admin' && ! empty($userServices)) {
+        if (Auth::user()->Type_Of_Admin !== 'Admin' && $userServices !== []) {
             $query->where(function ($subQuery) use ($userServices) {
                 foreach ($userServices as $service) {
                     $subQuery->orWhere('App_Service', $service);
@@ -224,50 +224,104 @@ class ActiveQueue extends Model
         return $query;
     }
 
-    public static function filterStationed($records): Collection
-    {
-
-        $filteredRecords = collect(); // Initialize an empty collection
-        $stationedIDs = User::getUsersByStatus(UserStatus::Stationed())->pluck('GUID');
-      
-        foreach ($records as $record) {
-           self::checkIfServiceInStationedLoc($record->Company_Dept_ID, $record->App_Service, $record->App_Location_GUID, $record->App_Zone_GUID, $record->App_Building_GUID) ? null : $filteredRecords->push($record);
-        }
-   
-
-        // Ensure the result is a collection
-        return new Collection($filteredRecords->all());
-    }
-
-  
-
-
-    
-    public static function checkIfServiceInStationedLoc($dept_ID, $tmpServ, $tmpLocGUID, $tmpZoneGUID, $tmpBuildGUID)
+    public static function getMatchingStaffGUIDs($dept_ID, $tmpServ, $tmpLocGUID, $tmpZoneGUID, $tmpBuildGUID): array
     {
         $results = StaffStation::select(
-                'Staff_Station.App_Location_GUID as location',
-                'Staff_Station.App_Zone_GUID as zone',
-                'Staff_Station.App_Building_GUID as building',
-                'Dispatch_Staff.Service as service'
-            )
+            'Staff_Station.Staff_GUID as staff_guid',
+            'Staff_Station.App_Location_GUID as location',
+            'Staff_Station.App_Zone_GUID as zone',
+            'Staff_Station.App_Building_GUID as building',
+            'Dispatch_Staff.Service as service'
+        )
             ->join('Dispatch_Staff', 'Dispatch_Staff.Acc_GUID', '=', 'Staff_Station.Staff_GUID')
             ->where('Dispatch_Staff.Company_Dept_ID', $dept_ID)
             ->where('Staff_Station.Company_Dept_ID', $dept_ID)
             ->where('Staff_Station.stationed_status', 1)
             ->get();
-      
-    
+
         if ($results->isEmpty()) {
-            return false;
+            return [];
         }
-    
+
+        $matchingStaff = [];
+
         foreach ($results as $row) {
             $locationMatch = $row->location == $tmpLocGUID || is_null($row->location);
             $zoneMatch = $row->zone == $tmpZoneGUID || is_null($row->zone);
             $buildingMatch = $row->building == $tmpBuildGUID;
             $serviceMatch = $row->service == $tmpServ;
-    
+
+            if ($buildingMatch && $serviceMatch) {
+                if (is_null($tmpZoneGUID) && is_null($tmpLocGUID)) {
+                    if (is_null($row->location) && is_null($row->zone)) {
+                        $matchingStaff[] = $row->staff_guid;
+                    } elseif (is_null($row->location) && $zoneMatch) {
+                        $matchingStaff[] = $row->staff_guid;
+                    } elseif ($locationMatch && $zoneMatch) {
+                        $matchingStaff[] = $row->staff_guid;
+                    }
+                } elseif (!is_null($tmpZoneGUID) && is_null($tmpLocGUID)) {
+                    if (is_null($row->location) && is_null($row->zone)) {
+                        $matchingStaff[] = $row->staff_guid;
+                    } elseif (is_null($row->location) && $zoneMatch) {
+                        $matchingStaff[] = $row->staff_guid;
+                    } elseif ($locationMatch && $zoneMatch) {
+                        $matchingStaff[] = $row->staff_guid;
+                    }
+                } elseif (!is_null($tmpZoneGUID) && !is_null($tmpLocGUID)) {
+                    if (is_null($row->location) && is_null($row->zone)) {
+                        $matchingStaff[] = $row->staff_guid;
+                    } elseif (is_null($row->location) && $zoneMatch) {
+                        $matchingStaff[] = $row->staff_guid;
+                    } elseif ($locationMatch && $zoneMatch) {
+                        $matchingStaff[] = $row->staff_guid;
+                    }
+                }
+            }
+        }
+
+        return $matchingStaff;
+    }
+
+
+    public static function filterStationed($records): Collection
+    {
+
+        $filteredRecords = collect(); // Initialize an empty collection
+        $stationedIDs = User::getUsersByStatus(UserStatus::Stationed())->pluck('GUID');
+
+        foreach ($records as $record) {
+            self::checkIfServiceInStationedLoc($record->Company_Dept_ID, $record->App_Service, $record->App_Location_GUID, $record->App_Zone_GUID, $record->App_Building_GUID) ? null : $filteredRecords->push($record);
+        }
+
+        // Ensure the result is a collection
+        return new Collection($filteredRecords->all());
+    }
+
+    public static function checkIfServiceInStationedLoc($dept_ID, $tmpServ, $tmpLocGUID, $tmpZoneGUID, $tmpBuildGUID): bool
+    {
+        $results = StaffStation::select(
+            'Staff_Station.App_Location_GUID as location',
+            'Staff_Station.App_Zone_GUID as zone',
+            'Staff_Station.App_Building_GUID as building',
+            'Dispatch_Staff.Service as service'
+        )
+            ->join('Dispatch_Staff', 'Dispatch_Staff.Acc_GUID', '=', 'Staff_Station.Staff_GUID')
+            ->where('Dispatch_Staff.Company_Dept_ID', $dept_ID)
+            ->where('Staff_Station.Company_Dept_ID', $dept_ID)
+            ->where('Staff_Station.stationed_status', 1)
+            ->get();
+
+        if ($results->isEmpty()) {
+            return false;
+        }
+
+        foreach ($results as $row) {
+            $locationMatch = $row->location == $tmpLocGUID || is_null($row->location);
+            $zoneMatch = $row->zone == $tmpZoneGUID || is_null($row->zone);
+            $buildingMatch = $row->building == $tmpBuildGUID;
+            $serviceMatch = $row->service == $tmpServ;
+
             if ($buildingMatch && $serviceMatch) {
                 if (is_null($tmpZoneGUID) && is_null($tmpLocGUID)) {
                     if (is_null($row->location) && is_null($row->zone)) {
@@ -279,7 +333,7 @@ class ActiveQueue extends Model
                     if ($locationMatch && $zoneMatch) {
                         return true;
                     }
-                } elseif (!is_null($tmpZoneGUID) && is_null($tmpLocGUID)) {
+                } elseif (! is_null($tmpZoneGUID) && is_null($tmpLocGUID)) {
                     if (is_null($row->location) && is_null($row->zone)) {
                         return true;
                     }
@@ -289,7 +343,7 @@ class ActiveQueue extends Model
                     if ($locationMatch && $zoneMatch) {
                         return true;
                     }
-                } elseif (!is_null($tmpZoneGUID) && !is_null($tmpLocGUID)) {
+                } elseif (! is_null($tmpZoneGUID) && ! is_null($tmpLocGUID)) {
                     if (is_null($row->location) && is_null($row->zone)) {
                         return true;
                     }
@@ -302,11 +356,9 @@ class ActiveQueue extends Model
                 }
             }
         }
-    
+
         return false;
     }
-    
-
 
     /**
      * Fetch active queue records with dynamic conditions.
@@ -317,22 +369,32 @@ class ActiveQueue extends Model
      * @param  int  $departmentId  The ID of the company department.
      * @return Collection The resulting collection of records.
      */
-    public static function fetchActiveQueue(int $departmentId, RequestStatus $status, bool $value = true): Collection
+    public static function fetchActiveQueue(int $departmentId, RequestStatus $status, bool $value = true, bool $filterStationed = true, bool $websocket = false): Collection
     {
         // Calculate the pre-scheduled time threshold for the department using Carbon
         $preScheduledTimeThreshold = Helper::return_TotalPreschedTime($departmentId);
         $preScheduledTime = Carbon::now()->addMinutes($preScheduledTimeThreshold);
 
         // Retrieve the list of services associated with the current user
-        $userServices = Auth::user()->services()->pluck('Service')->toArray();
+        $userServices = [];
+        if (! $websocket) {
+            $userServices = Auth::user()->services()->pluck('Service')->toArray();
+        }
 
         // Base query to avoid duplication
         $query = self::query()
             ->join('Dispatch_Service as ds', 'Dispatch_Chart_Active_Queue.App_Service', '=', 'ds.Service_Name') // Join with Dispatch_Service table
             ->where('Dispatch_Chart_Active_Queue.Company_Dept_ID', $departmentId) // Specify the table explicitly
             ->filterByUserServices($userServices) // Apply service-based filters
-            ->whereNull('Dispatch_Chart_Active_Queue.App_Done') // Specify the table explicitly
-            ->whereNull('Dispatch_Chart_Active_Queue.App_Declined'); // Specify the table explicitly
+            ->where(function ($query) {
+                $query->whereNull('Dispatch_Chart_Active_Queue.App_Done')
+                    ->orWhere('Dispatch_Chart_Active_Queue.App_Done', 0);
+            })
+            ->where(function ($query) {
+                $query->whereNull('Dispatch_Chart_Active_Queue.App_Declined')
+                    ->orWhere('Dispatch_Chart_Active_Queue.App_Declined', 0);
+            });
+
         if ($status->value !== RequestStatus::App_Paused) {
             $query = $query->where(function ($query) {
                 $query->where('Dispatch_Chart_Active_Queue.App_Paused', false)
@@ -376,8 +438,11 @@ class ActiveQueue extends Model
                 RequestStatus::App_Paused => null,
             ])
                 ->get(); // Return query result for pending status
+            if ($filterStationed) {
+                return self::filterStationed($records)->unique('GUID');
+            }
 
-            return self::filterStationed($records)->unique('GUID');
+            return $records->unique('GUID');
 
         }
 
@@ -385,8 +450,50 @@ class ActiveQueue extends Model
         $records = $query->where($status->value, $value)
             ->get(); // Return query result for other statuses
 
-        return self::filterStationed($records)->unique('GUID');
+        if ($filterStationed) {
+            return self::filterStationed($records)->unique('GUID');
+        }
+
+        return $records->unique('GUID');
     }
+
+    public static function getStatusByGUID(string $guid): ?RequestStatus
+{
+        // Retrieve the record with the given GUID
+        $record = self::query()
+            ->where('GUID', $guid)
+            ->first();
+
+        // If no record is found, return null
+        if (! $record) {
+            return null;
+        }
+
+        // Check the status based on the available fields
+        if ($record->App_Session) {
+            return RequestStatus::App_Session();
+        }
+        if ($record->App_Arrived) {
+            return RequestStatus::App_Arrived();
+        }
+        if ($record->App_Approved) {
+            return RequestStatus::App_Approved();
+        }
+        if ($record->App_Dispatched) {
+            return RequestStatus::App_Dispatched();
+        }
+        if ($record->App_Paused) {
+            return RequestStatus::App_Paused();
+        }
+        if (is_null($record->App_Approved) && is_null($record->App_Arrived) &&
+            is_null($record->App_Dispatched) && is_null($record->App_Session) &&
+            is_null($record->App_Paused)) {
+            return RequestStatus::App_Pending();
+        }
+
+        return null; // If no specific status is found
+}
+
 
     public function lifeline(): HasMany
     {

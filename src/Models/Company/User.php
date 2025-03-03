@@ -79,6 +79,7 @@ class User extends Authenticatable
         'is_mobile',
         'device_token',
         'device_type',
+        'loggedInStatus',
     ];
 
     // Hidden attributes (e.g., passwords)
@@ -88,6 +89,19 @@ class User extends Authenticatable
         'password_tmp',
         'verify_code',
     ];
+
+    protected function formattedName(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(get: function () {
+            return "{$this->Last_name}, {$this->First_name}";
+        });
+    }
+
+    public function getStaffLoginLocations(): array
+    {
+        // Explode the string into an array and convert each value to uppercase
+        return array_map('strtoupper', explode(',', $this->Staff_Login_Location));
+    }
 
     /**
      * Get the password for authentication.
@@ -134,9 +148,11 @@ class User extends Authenticatable
     /**
      * Format the `Check_In_At` attribute as a string.
      */
-    public function getCheckInAtAttribute($value): string
+    protected function checkInAt(): \Illuminate\Database\Eloquent\Casts\Attribute
     {
-        return Carbon::parse($value)->toDateTimeString();
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(get: function ($value) {
+            return Carbon::parse($value)->toDateTimeString();
+        });
     }
 
     /**
@@ -188,12 +204,24 @@ class User extends Authenticatable
      */
     public static function getUsersByStatus(UserStatus $status): Collection|_IH_User_C|array
     {
+
         // Get all users that could match the status.
-        $users = self::where('isStationed', false)
-                    ->orWhere('isStationed', null)->get();
+        $users = self::where('Company_Dept_ID', request('d_id'))
+            ->where('Type_Staff', 1)
+            ->where(function ($query) {
+                $query->whereNull('Account_Deleted')
+                    ->orWhere('Account_Deleted', false);
+            })->where('isStationed', false)
+            ->orWhere('isStationed', null)
+            ->get();
 
         if ($status->value === UserStatus::Stationed()->value) {
-            return self::where(['isStationed' => true, 'Staff_Login_State' => 1])->get();
+            return self::where('Company_Dept_ID', request('d_id'))
+                ->where('Type_Staff', 1)
+                ->where(function ($query) {
+                    $query->whereNull('Account_Deleted')
+                        ->orWhere('Account_Deleted', false);
+                })->where(['isStationed' => true, 'Staff_Login_State' => 1])->get();
         }
 
         // Filter users using the getStatus logic.
@@ -219,5 +247,26 @@ class User extends Authenticatable
     public function isDirRequestor(): bool
     {
         return ! $this->type_admin && ! $this->type_staff && $this->type_req && $this->type_req_dir_access && ! empty($this->req_short_url);
+    }
+
+    public function updateUserAccount($isMobile, $deviceToken = null, $deviceType = null)
+    {
+        $this->is_mobile = $isMobile;
+        $this->device_token = $deviceToken;
+        $this->device_type = $deviceType;
+
+        $this->save();
+    }
+
+    public function createResetToken()
+    {
+        $tokenContext = $this->GUID.'|'.$this->Company_Dept_ID.'|'.$this->Company_Code;
+
+        return $this->encryptToken($tokenContext); // Encrypt the token
+    }
+
+    public function verifyResetToken($encryptedToken)
+    {
+        return $this->decryptToken($encryptedToken); // Decrypt the token
     }
 }

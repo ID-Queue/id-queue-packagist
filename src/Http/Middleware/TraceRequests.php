@@ -62,7 +62,7 @@ class TraceRequests
                     'message' => $e->getMessage(),
                     'trace' => $e->getTraceAsString(),
                 ]);
-                Log::error('Exception in TraceRequests middleware: ' . $e->getMessage(), [
+                Log::error('Exception in TraceRequests middleware: '.$e->getMessage(), [
                     'trace' => $e->getTraceAsString(),
                 ]);
             } finally {
@@ -70,7 +70,7 @@ class TraceRequests
                 $rootSpan->end();
                 $scope->detach();
             }
-            
+
             return $response;
         }
 

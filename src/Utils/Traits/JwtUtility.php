@@ -53,11 +53,7 @@ trait JwtUtility
                 'details' => $payload,
             ];
 
-            if ($isTokenExpired || ! $isSignatureValid) {
-                $res['check'] = false;
-            } else {
-                $res['check'] = true;
-            }
+            $res['check'] = $isTokenExpired || ! $isSignatureValid ? false : true;
 
             return $res;
 

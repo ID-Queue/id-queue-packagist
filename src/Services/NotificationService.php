@@ -2,17 +2,21 @@
 
 namespace IdQueue\IdQueuePackagist\Services;
 
+use IdQueue\IdQueuePackagist\Events\GroupNotification;
+use IdQueue\IdQueuePackagist\Events\InterpreterListNotification;
 use IdQueue\IdQueuePackagist\Models\Company\DeptPreSetting;
 use IdQueue\IdQueuePackagist\Models\Company\DispatchChart;
 use IdQueue\IdQueuePackagist\Models\Company\User;
 use IdQueue\IdQueuePackagist\Traits\Encryptable;
 use IdQueue\IdQueuePackagist\Utils\Helper;
+use Illuminate\Support\Facades\Http;
 use Log;
 use Throwable;
 
 class NotificationService
 {
     use Encryptable;
+
     private MailService $mailService;
 
     /**
@@ -59,7 +63,6 @@ class NotificationService
             ];
         })->toArray();
 
-
         // Ensure there are emails to send
         if (empty($emailsUsernamesGUIDs)) {
             // Log or handle the case where no emails are found
@@ -70,8 +73,8 @@ class NotificationService
         foreach ($emailsUsernamesGUIDs as $user) {
             // Prepare the token
             $token = $this->encryptToken(json_encode([
-                "guid" => $user['guid'], // Access GUID as an array key
-                "company_code" => request('Company_Code')
+                'guid' => $user['guid'], // Access GUID as an array key
+                'company_code' => request('Company_Code'),
             ]));
 
             // Prepare email data
@@ -90,10 +93,10 @@ class NotificationService
 
             try {
                 // Call the mail service to send the email
-                 $this->mailService->staffEmailRequest($emailData);
+                $this->mailService->staffEmailRequest($emailData);
             } catch (\Exception $e) {
                 // Log the error for debugging
-                Log::error('Failed to notify staff: ' . $e->getMessage(), [
+                Log::error('Failed to notify staff: '.$e->getMessage(), [
                     'deptId' => $deptId,
                     'serviceName' => $serviceName,
                     'bcc' => $bcc,
@@ -110,7 +113,7 @@ class NotificationService
     {
         $dispatchDataArray = $this->getDispatchChartData($deptId, $idVal);
 
-        if (empty($dispatchDataArray) || ! isset($dispatchDataArray[0])) {
+        if ($dispatchDataArray === [] || ! isset($dispatchDataArray[0])) {
             return [
                 'status' => 'error',
                 'message' => 'No dispatch data found for the given ID and department.',
@@ -265,12 +268,54 @@ class NotificationService
     {
         $timeMod = $user->Account_PW_Last_Modified ?? now();
 
-        if ($user->isDirRequestor()) {
-            $timeMod = $timeMod->copy()->addDays(365);
-        } else {
-            $timeMod = $timeMod->copy()->addDays(90);
-        }
+        $timeMod = $user->isDirRequestor() ? $timeMod->copy()->addDays(365) : $timeMod->copy()->addDays(90);
 
         return now()->diffInDays($timeMod, false);
+    }
+
+    // In your controller or service class
+    public function sendGroupNotification($departmentId, $companyCode)
+    {
+        // Fetch users based on the given department ID and other conditions
+        $users = User::where('Company_Dept_ID', $departmentId)
+            ->where(function ($query) {
+                $query->whereNull('Account_Deleted')
+                    ->orWhere('Account_Deleted', false);
+            })
+            ->where(function ($query) {
+                $query->where('Staff_Login_State', '1')
+                    ->orWhere('loggedInStatus', '1');
+            })
+            ->get();
+
+        // Trigger the event to send the notification for each user
+        foreach ($users as $user) {
+            event(new InterpreterListNotification(
+                'interpreter-updated',
+                'staff',
+                $companyCode,
+                $departmentId,
+                $user->GUID  // Assuming the GUID is stored in the `GUID` column of the User model
+            ));
+        }
+    }
+
+    public function sendNotification($dept_ID, $staffID, $prioVal): \Illuminate\Http\JsonResponse|string
+    {
+        $url = env('REQUESTOR_SERVICE', 'https://req.dev1.id-queue.com/api/send/notification').'api/send/notification';
+
+        $response = Http::asForm()->post($url, [
+            'd_id' => $dept_ID,
+            'stud_ID' => $staffID,
+            'priority' => $prioVal,
+        ]);
+
+        // Handling the response
+        if ($response->successful()) {
+            return $response->body();
+        } else {
+            // Handle error response
+            return response()->json(['error' => 'Failed to send notification'], $response->status());
+        }
     }
 }

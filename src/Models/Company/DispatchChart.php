@@ -32,6 +32,11 @@ class DispatchChart extends Model
         'App_Service_GUID',
         'App_Location_GUID',
         'App_LocDetail',
+        'App_Approved',
+        'App_Arrived',
+        'App_Session',
+        'App_Paused',
+        'App_Done',
         'App_Declined',
         'Deleted_By_Name',
         'App_Pre_Schedual_Time',
@@ -66,11 +71,14 @@ class DispatchChart extends Model
         'Declined_Time',
         'Dispatched_Time',
         'Dispatch_Notes',
+        'Release_Notes',
     ];
 
     protected $casts = [
         'Req_Video_Conf' => 'boolean',
         'App_Time' => 'datetime',
+        'Req_Time' => 'datetime',
+        'Pre_Req_Time' => 'datetime',
         'Approved_Time' => 'datetime',
         'Arrived_Time' => 'datetime',
         'Session_Time' => 'datetime',
@@ -81,16 +89,24 @@ class DispatchChart extends Model
         'Priority' => 'integer',
         'App_Visit_Type_ID' => 'integer',
         'Req_DoximityNo' => 'integer',
+        'App_Pre_Schedual_Time' => 'datetime',
+        'App_Done' => 'boolean',
+        'App_Declined' => 'boolean',
+        'App_Approved' => 'boolean',
+        'App_Arrived' => 'boolean',
+        'App_Session' => 'boolean',
+        'App_Paused' => 'boolean',
     ];
 
     /**
      * Set the Dispatch_Notes attribute.
      */
-    public function setDispatchNotesAttribute(string $value): void
+    protected function dispatchNotes(): \Illuminate\Database\Eloquent\Casts\Attribute
     {
-        // Modify the dispatch note, for example, trimming the whitespace
-        // and encoding the text before saving
-        $this->attributes['Dispatch_Notes'] = trim($value); // Add your custom logic here
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(set: function (string $value) {
+            // Add your custom logic here
+            return ['Dispatch_Notes' => trim($value)];
+        });
     }
 
     public function department(): BelongsTo
