@@ -304,7 +304,7 @@ class NotificationService
 
     public function sendNotification($dept_ID, $staffID, $prioVal): \Illuminate\Http\JsonResponse|string
     {
-        $url = env('REQUESTOR_SERVICE', 'https://req.dev1.id-queue.com/').'api/send/notification';
+        $url = env('REQUEST_SERVICES', 'https://req.dev1.id-queue.com/').'api/send/notification';
      
         $response = Http::asForm()->post($url, [
             'Company_DB' => request('Company_DB'),
