@@ -9,6 +9,7 @@ use IdQueue\IdQueuePackagist\Models\Company\DispatchChart;
 use IdQueue\IdQueuePackagist\Models\Company\User;
 use IdQueue\IdQueuePackagist\Traits\Encryptable;
 use IdQueue\IdQueuePackagist\Utils\Helper;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Log;
 use Throwable;
@@ -295,21 +296,23 @@ class NotificationService
                 'staff',
                 $companyCode,
                 $departmentId,
-                $user->GUID  // Assuming the GUID is stored in the `GUID` column of the User model
+                $user->GUID,  // Assuming the GUID is stored in the `GUID` column of the User model
+                ""
             ));
         }
     }
 
     public function sendNotification($dept_ID, $staffID, $prioVal): \Illuminate\Http\JsonResponse|string
     {
-        $url = env('REQUESTOR_SERVICE', 'https://req.dev1.id-queue.com/api/send/notification').'api/send/notification';
-
+        $url = env('REQUEST_SERVICES', 'https://req.dev1.id-queue.com/').'api/send/notification';
+     
         $response = Http::asForm()->post($url, [
+            'Company_DB' => request('Company_DB'),
             'd_id' => $dept_ID,
             'stud_ID' => $staffID,
             'priority' => $prioVal,
         ]);
-
+       
         // Handling the response
         if ($response->successful()) {
             return $response->body();

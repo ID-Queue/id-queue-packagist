@@ -34,7 +34,7 @@ class InterpreterResource extends JsonResource
             'status' => ((bool) $this->resource->isStationed) ? UserStatus::note(UserStatus::Stationed) : UserStatus::note($status),
             'stationed' => (bool) $this->resource->isStationed,
             'stopwatch' => $this->calculateRequestTimer($this->resource->Staff_Last_Action),
-            'icon' => ((bool) $this->resource->isStationed) ? UserStatus::image(UserStatus::Stationed) : UserStatus::image($status),
+            'icon' => UserStatus::image($status),
         ];
 
     }
