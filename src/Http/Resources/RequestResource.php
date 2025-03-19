@@ -124,7 +124,7 @@ class RequestResource extends JsonResource
         $responseData['notes'] = $this->Notes;
         $responseData['release_notes'] = $this->Release_Notes;
         $responseData['priority'] = (int) $this->Priority;
-        $responseData['bg_colour'] = RequestPriority::color((int) $this->Priority);
+        $responseData['bg_colour'] = ((bool) $this->resource->App_Paused) ? "#9900CC" : RequestPriority::color((int) $this->Priority);
         $responseData['staff_status'] = $this->getStaffStatus();
         $responseData['id'] = $record->ID;
         if ($request->input('cancelreasons')) {
