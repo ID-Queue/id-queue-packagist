@@ -97,6 +97,14 @@ class RequestLifeLineResource extends JsonResource
                 'image' => 'dispatcher_25_note.png',
                 'title' => 'Dispatcher Applied Note.',
             ],
+            18 => [
+                'image' => 'dispatcher_request_reassigned.png',
+                'title' => 'Request Reassigned by Dispatcher',
+            ],
+            19 => [
+                'image' => 'dispatcher_request_unassigned.png',
+                'title' => 'Request Unassigned by Dispatcher',
+            ],
             default => [
                 'image' => 'unknown.png',
                 'title' => 'Unknown Action.',
