@@ -103,6 +103,14 @@ class User extends Authenticatable
         return array_map('strtoupper', explode(',', $this->Staff_Login_Location));
     }
 
+    public function getUserChannel(): string
+    {
+        $uniqueGroupCode = hash('sha256', sprintf('staff%s%s%s', $this->GUID, $this->Company_Code, $this->Company_Dept_ID ?? ''));
+    
+        return "group.{$uniqueGroupCode}";
+    }
+    
+
     /**
      * Get the password for authentication.
      */
@@ -207,21 +215,22 @@ class User extends Authenticatable
 
         // Get all users that could match the status.
         $users = self::where('Company_Dept_ID', request('d_id'))
-            ->where('Type_Staff', 1)
-            ->where(function ($query) {
-                $query->whereNull('Account_Deleted')
-                    ->orWhere('Account_Deleted', false);
-            })->where('isStationed', false)
-            ->orWhere('isStationed', null)
-            ->get();
+        ->where('Type_Staff', 1)
+        ->where(function ($query) {
+            $query->whereNull('Account_Deleted')
+                  ->orWhere('Account_Deleted', false);
+        })->where('isStationed', false)
+        ->orWhere('isStationed', null)
+        ->get();
+
 
         if ($status->value === UserStatus::Stationed()->value) {
             return self::where('Company_Dept_ID', request('d_id'))
-                ->where('Type_Staff', 1)
-                ->where(function ($query) {
-                    $query->whereNull('Account_Deleted')
-                        ->orWhere('Account_Deleted', false);
-                })->where(['isStationed' => true, 'Staff_Login_State' => 1])->get();
+            ->where('Type_Staff', 1)
+            ->where(function ($query) {
+                $query->whereNull('Account_Deleted')
+                      ->orWhere('Account_Deleted', false);
+            })->where(['isStationed' => true, 'Staff_Login_State' => 1])->get();
         }
 
         // Filter users using the getStatus logic.
