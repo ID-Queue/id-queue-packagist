@@ -35,10 +35,27 @@ class InterpreterResource extends JsonResource
             'stationed' => (bool) $this->resource->isStationed,
             'stopwatch' => $this->calculateRequestTimer($this->resource->Staff_Last_Action),
             'icon' => UserStatus::image($status),
+            'is_location_null' => $this->getLocationNull(),
         ];
 
     }
 
+    private function getLocationNull(): bool
+    {
+        switch ($this->resource->Staff_Login_State) {
+            case 1:
+                return !$this->lastLocation()
+                    ->whereDate('Location_Time', Carbon::today())
+                    ->exists();
+            case 2:
+            case 3:
+                return true;
+            default:
+                return false;
+        }
+    }
+    
+    
     /**
      * Format the last action time as an array [time, date].
      */
