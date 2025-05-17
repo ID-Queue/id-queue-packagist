@@ -8,13 +8,22 @@ use IdQueue\IdQueuePackagist\Models\Company\DeptPreSetting;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 
 class DispatchRequestList extends JsonResource
 {
+    protected bool $channel;
+
+    public function __construct($resource, bool $channel = false)
+    {
+        parent::__construct($resource);
+        $this->channel = $channel;
+    }
+
     public function toArray($request)
     {
 
-        return [
+       $resource =   [
 
             'requests' => [
                 'columns' => DispatchAndInterpreterResource::getColumns($this->resource->department)->toArray(), // Add columns object
@@ -25,7 +34,14 @@ class DispatchRequestList extends JsonResource
                 'arrived' => $this->mapRequestStatus($this->resource->queues['arrived'] ?? []),
                 'insession' => $this->mapRequestStatus($this->resource->queues['insession'] ?? []),
             ],
+            
         ];
+
+        if($this->channel){
+           $resource['channel'] = optional(Auth::user())->getUserChannel();
+        }
+
+        return $resource;
 
     }
 
