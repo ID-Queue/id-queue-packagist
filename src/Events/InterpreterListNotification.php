@@ -5,6 +5,7 @@ namespace IdQueue\IdQueuePackagist\Events;
 use IdQueue\IdQueuePackagist\Enums\UserStatus;
 use IdQueue\IdQueuePackagist\Http\Resources\InterpreterResource;
 use IdQueue\IdQueuePackagist\Models\Admin\CC2DB;
+use IdQueue\IdQueuePackagist\Models\Company\ActiveQueue;
 use IdQueue\IdQueuePackagist\Models\Company\User;
 use IdQueue\IdQueuePackagist\Services\ConnectionService;
 use Illuminate\Broadcasting\InteractsWithSockets;
@@ -81,8 +82,8 @@ class InterpreterListNotification implements ShouldBroadcastNow
     public function broadcastWith(): array
     {
         $user = User::where('GUID', $this->updated_user)->first();
-        $status = $this->getUserStatusByGUID($this->updated_user);
-
+        $status = $this->getUserStatusByGUID($user);
+       // dd($status,  $user);
         Log::info('Broadcasting event', [
             'event' => $this->message,
             'updated_user' => $this->updated_user,
@@ -93,56 +94,53 @@ class InterpreterListNotification implements ShouldBroadcastNow
             'event' => $this->message,
             'data' => [
                 'user' => new InterpreterResource($user),
-                'status' => $status,
+                'status' => UserStatus::getKey($status),
             ],
         ];
     }
-
-    public function getUserStatusByGUID(string $guid)
+    
+    public function getUserStatusByGUID(User $user)
     {
-        $user = User::where('GUID', $guid)
-            ->where(function ($query) {
-                $query->whereNull('Account_Deleted')
-                    ->orWhere('Account_Deleted', false);
-            })
-            ->first();
 
-        if (! $user) {
-            Log::warning('User not found in getUserStatusByGUID', ['guid' => $guid]);
-            return response()->json(['error' => 'User not found'], 404);
+        $currentStatus = ActiveQueue::returnStaffCurrentStatus($user->GUID, $user->Company_Dept_ID);
+    
+        
+        if ($currentStatus > 0) {
+            return $this->mapStatus($currentStatus, $user);
         }
 
-        if ($user->isStationed == true && $user->Staff_Login_State == 1) {
-            Log::info('User is stationed', ['guid' => $guid]);
-            return 'stationed';
+        if (ActiveQueue::returnIfDispatchedToStaff($user->GUID, $user->Company_Dept_ID)) {
+            return UserStatus::Dispatched;
+        }
+        if ((int) $user->Staff_Login_State === 1) {
+            return UserStatus::Available;
+        }
+        if ((int) $user->Staff_Login_State === 2) {
+            return UserStatus::Lunch;
+        }
+        if ((int) $user->Staff_Login_State === 3) {
+            return UserStatus::NotAvailable;
         }
 
-        $statuses = [
-            'available' => UserStatus::Available,
-            'arrived' => UserStatus::Arrived,
-            'dispatched' => UserStatus::Dispatched,
-            'session' => UserStatus::InProgress,
-            'paused' => UserStatus::Paused,
-            'accepted' => UserStatus::Accepted,
-            'lunchandna' => [
-                UserStatus::Lunch()->value,
-                UserStatus::NotAvailable()->value,
-            ],
+        if ((int) $user->Staff_Login_State == 0) {
+            return UserStatus::CheckOut;
+        }
+
+        return UserStatus::LoggedOut;
+        
+    }
+    private function mapStatus(int $currentStatus, User $user): int
+    {
+     
+        $statusMapping = [
+            7 => UserStatus::Paused, // Paused
+            4 => UserStatus::InProgress, // In session
+            3 => UserStatus::Arrived, // SW
+            2 => UserStatus::Accepted, // Thumbs
         ];
+   
 
-        foreach ($statuses as $key => $status) {
-            if ($key === 'lunchandna' && in_array($user->getStatus(), $status)) {
-                Log::info('User status identified as lunchandna', ['guid' => $guid]);
-                return 'lunchandna';
-            }
-
-            if ($user->getStatus() === $status) {
-                Log::info("User status identified as {$key}", ['guid' => $guid]);
-                return $key;
-            }
-        }
-
-        Log::warning('User status is unknown', ['guid' => $guid]);
-        return 'unknown';
+        // Return the mapped status or default to the current staff login state
+        return $statusMapping[$currentStatus] ?? $user->Staff_Login_State; // Default to current state if no match
     }
 }

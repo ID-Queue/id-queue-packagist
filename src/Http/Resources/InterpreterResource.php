@@ -18,7 +18,7 @@ class InterpreterResource extends JsonResource
     {
         // Ensure resource is available and has the 'GUID' property
         $status = $this->resource->getStatus();
-
+       
         return [
             'guid' => $this->resource->GUID,
             'staff_name' => "{$this->resource->First_name} {$this->resource->Last_name}",

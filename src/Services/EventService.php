@@ -46,6 +46,7 @@ class EventService
         if(isset($extraParams['checkedInIds'])){
             $this->users = $this->users->whereIn('GUID',$extraParams['checkedInIds'] )->all();
         }
+      
      
         foreach ($this->users as $user) {
             
