@@ -115,12 +115,17 @@ class InterpreterListNotification implements ShouldBroadcastNow
         if ((int) $user->Staff_Login_State === 1) {
             return UserStatus::Available;
         }
-        if ((int) $user->Staff_Login_State === 2) {
-            return UserStatus::Lunch;
+        // if ((int) $user->Staff_Login_State === 2) {
+        //     return UserStatus::Lunch;
+        // }
+        // if ((int) $user->Staff_Login_State === 3) {
+        //     return UserStatus::NotAvailable;
+        // }
+
+        if((int) $user->Staff_Login_State === 2 || (int) $user->Staff_Login_State === 3){
+            return "lunchandna";
         }
-        if ((int) $user->Staff_Login_State === 3) {
-            return UserStatus::NotAvailable;
-        }
+
 
         if ((int) $user->Staff_Login_State == 0) {
             return UserStatus::CheckOut;
