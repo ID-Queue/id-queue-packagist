@@ -75,6 +75,7 @@ class EventService
                         ));
                         break;
                     case EventType::REQUEST_DELETED:
+                       
                         Event::dispatch(new RequestDeletedNotification(
                            EventType::REQUEST_DELETED,
                             'staff',

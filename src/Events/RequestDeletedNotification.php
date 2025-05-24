@@ -62,7 +62,7 @@ class RequestDeletedNotification implements ShouldBroadcastNow
         $this->deptID = $deptID;
         $this->user_id = $user_id;
         $this->request_id = $request_id;
-
+     
         $db = CC2DB::where('Company_Code', $this->companyCode)->first();
 
         // Throw error if not found
@@ -107,7 +107,7 @@ class RequestDeletedNotification implements ShouldBroadcastNow
      */
     public function broadcastWith(): array
     {
-       
+   
         return [
             'event' => $this->message,
             'data' => [
