@@ -5,6 +5,7 @@ namespace IdQueue\IdQueuePackagist\Services;
 use IdQueue\IdQueuePackagist\Events\RequestListNotification;
 use IdQueue\IdQueuePackagist\Events\InterpreterListNotification;
 use IdQueue\IdQueuePackagist\Enums\EventType;
+use IdQueue\IdQueuePackagist\Events\RequestDeletedNotification;
 use IdQueue\IdQueuePackagist\Models\Company\User;
 use Illuminate\Support\Facades\Event;
 
@@ -66,6 +67,16 @@ class EventService
                     case EventType::DISPATCH_UPDATED:
                         Event::dispatch(new RequestListNotification(
                             'dispatch-updated',
+                            'staff',
+                            $this->companyCode,
+                            $this->deptID,
+                            $user->GUID,
+                            $extraParams['request_id'] ?? null  // Dynamically handle request_id
+                        ));
+                        break;
+                    case EventType::REQUEST_DELETED:
+                        Event::dispatch(new RequestDeletedNotification(
+                           EventType::REQUEST_DELETED,
                             'staff',
                             $this->companyCode,
                             $this->deptID,
