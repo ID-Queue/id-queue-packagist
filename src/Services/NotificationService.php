@@ -77,20 +77,22 @@ class NotificationService
                 'guid' => $user['guid'], // Access GUID as an array key
                 'company_code' => request('Company_Code'),
             ]));
-
+            
             // Prepare email data
             $emailData = [
                 'emails' => [$user['email']], // Use email from the current user
-                'bcc' => $bcc ? explode(',', $bcc) : [], // Handle optional BCC if provided
+                'bcc' => !empty($bcc) ? explode(',', $bcc) : [], // Handle optional BCC if provided
                 'type' => 'Submit',
                 'data' => [
                     'url' => sprintf(
-                        '%s?action=accept_request&token=%s',
+                        '%s?action=accept_request&beta=%s&token=%s',
                         $url,
+                        $user['Beta'],
                         urlencode($token)
                     ),
                 ],
             ];
+
 
             try {
                 // Call the mail service to send the email
