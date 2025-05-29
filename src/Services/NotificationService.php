@@ -61,7 +61,7 @@ class NotificationService
                 'email' => $user->email,
                 'username' => $user->username,
                 'guid' => $user->GUID,
-                'beta' => $user->$request->bearerToken(),
+                'beta' => $user->Beta,
             ];
         })->toArray();
 
