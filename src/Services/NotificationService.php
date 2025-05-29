@@ -61,6 +61,7 @@ class NotificationService
                 'email' => $user->email,
                 'username' => $user->username,
                 'guid' => $user->GUID,
+                'beta' => $user->$request->bearerToken(),
             ];
         })->toArray();
 
@@ -87,7 +88,7 @@ class NotificationService
                     'url' => sprintf(
                         '%s?action=accept_request&beta=%s&token=%s',
                         $url,
-                        $user['Beta'],
+                        $user['beta'],
                         urlencode($token)
                     ),
                 ],

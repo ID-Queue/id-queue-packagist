@@ -80,6 +80,7 @@ class User extends Authenticatable
         'device_token',
         'device_type',
         'loggedInStatus',
+        'Beta'
     ];
 
     // Hidden attributes (e.g., passwords)
